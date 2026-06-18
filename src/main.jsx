@@ -1,12 +1,12 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./authValidation.js";
-import "./ratingFilterOptions.js";
 import App from "./App.jsx";
 import "./styles.css";
 import "./auth.css";
 import "./restaurantForm.css";
 import "./reviews.css";
+import "./commentSearch.css";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>

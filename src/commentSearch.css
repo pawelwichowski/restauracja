@@ -1,0 +1,140 @@
+.comment-search-modal {
+  position: relative;
+  width: min(100%, 720px);
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+  border-radius: 1.1rem;
+  background: #fff;
+  box-shadow: 0 24px 70px rgb(0 0 0 / 0.28);
+  padding: 2rem;
+}
+
+.comment-search-modal h2 {
+  margin: 0;
+  color: #193427;
+  font-size: 1.7rem;
+}
+
+.comment-search-form {
+  display: flex;
+  align-items: end;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.comment-search-form label {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.45rem;
+  color: #34433a;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.comment-search-form input {
+  width: 100%;
+  border: 1px solid #cfd8d0;
+  border-radius: 0.65rem;
+  background: #fff;
+  color: #1f2933;
+  padding: 0.7rem 0.75rem;
+}
+
+.comment-search-form input:focus {
+  outline: 3px solid rgb(61 138 99 / 0.2);
+  border-color: #277352;
+}
+
+.comment-search-results {
+  margin-top: 1.4rem;
+  border-top: 1px solid #e5ece6;
+  padding-top: 1.2rem;
+}
+
+.comment-search-results h3 {
+  margin: 0 0 0.85rem;
+  color: #193427;
+  font-size: 1.05rem;
+}
+
+.comment-result-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.comment-result-card {
+  display: flex;
+  width: 100%;
+  gap: 0.85rem;
+  border: 1px solid #dde7df;
+  border-radius: 0.8rem;
+  background: #fff;
+  color: inherit;
+  padding: 0.7rem;
+  text-align: left;
+}
+
+.comment-result-card:hover {
+  border-color: #89b798;
+  background: #f8fcf8;
+}
+
+.comment-result-card img,
+.comment-result-photo-placeholder {
+  width: 72px;
+  height: 72px;
+  flex: 0 0 72px;
+  border-radius: 0.55rem;
+  object-fit: cover;
+}
+
+.comment-result-photo-placeholder {
+  display: grid;
+  place-items: center;
+  background: #e6f0e8;
+  color: #497157;
+  font-size: 1.25rem;
+}
+
+.comment-result-content {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.comment-result-content strong {
+  color: #193427;
+}
+
+.comment-result-meta {
+  color: #6a776d;
+  font-size: 0.82rem;
+}
+
+.comment-result-text {
+  overflow: hidden;
+  color: #45534a;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+  .comment-search-modal {
+    padding: 1.5rem;
+  }
+
+  .comment-search-form {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .comment-search-form button {
+    width: 100%;
+  }
+}
