@@ -52,3 +52,30 @@ class Restaurant(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Review(models.Model):
+    restaurant = models.ForeignKey(Restaurant, related_name="reviews", on_delete=models.CASCADE)
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="reviews", on_delete=models.CASCADE)
+    rating = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(5)]
+    )
+    comment = models.TextField(blank=True, max_length=2000)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at", "-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["restaurant", "author"],
+                name="unique_review_per_restaurant_and_author",
+            ),
+            models.CheckConstraint(
+                check=models.Q(rating__gte=1) & models.Q(rating__lte=5),
+                name="review_rating_range",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.restaurant} — {self.rating}/5 by {self.author}"
