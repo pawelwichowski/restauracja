@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import AddRestaurantModal from "./AddRestaurantModal.jsx";
+import RestaurantDetailsModal from "./RestaurantDetailsModal.jsx";
 
 const SIMULATED_LOCATIONS = [
   { id: "none", label: "Nie filtruj po lokalizacji" },
@@ -72,83 +73,43 @@ function AuthModal({ mode, onClose, onSubmit, busy, error, notice }) {
   return (
     <div className="modal-backdrop" role="presentation">
       <section className="auth-modal" role="dialog" aria-modal="true" aria-labelledby="auth-title">
-        <button className="modal-close" type="button" onClick={onClose} aria-label="Zamknij formularz">
-          ×
-        </button>
+        <button className="modal-close" type="button" onClick={onClose} aria-label="Zamknij formularz">×</button>
         <p className="eyebrow">Konto użytkownika</p>
         <h2 id="auth-title">{heading}</h2>
 
         {mode === "register" && (
           <form className="auth-form" onSubmit={(event) => onSubmit("register", event)}>
-            <label>
-              Nazwa użytkownika
-              <input name="username" minLength="3" maxLength="150" required autoComplete="username" />
-            </label>
-            <label>
-              E-mail
-              <input name="email" type="email" required autoComplete="email" />
-            </label>
-            <label>
-              Hasło
-              <input name="password" type="password" required autoComplete="new-password" />
-            </label>
-            <label>
-              Powtórz hasło
-              <input name="passwordConfirmation" type="password" required autoComplete="new-password" />
-            </label>
+            <label>Nazwa użytkownika<input name="username" minLength="3" maxLength="150" required autoComplete="username" /></label>
+            <label>E-mail<input name="email" type="email" required autoComplete="email" /></label>
+            <label>Hasło<input name="password" type="password" required autoComplete="new-password" /></label>
+            <label>Powtórz hasło<input name="passwordConfirmation" type="password" required autoComplete="new-password" /></label>
             <p className="form-hint">Hasło musi mieć co najmniej 8 znaków i nie może być zbyt proste.</p>
-            <button className="primary-button" disabled={busy} type="submit">
-              {busy ? "Tworzenie konta…" : "Utwórz konto"}
-            </button>
+            <button className="primary-button" disabled={busy} type="submit">{busy ? "Tworzenie konta…" : "Utwórz konto"}</button>
           </form>
         )}
 
         {mode === "login" && (
           <form className="auth-form" onSubmit={(event) => onSubmit("login", event)}>
-            <label>
-              Nazwa użytkownika lub e-mail
-              <input name="identity" required autoComplete="username" />
-            </label>
-            <label>
-              Hasło
-              <input name="password" type="password" required autoComplete="current-password" />
-            </label>
-            <button className="primary-button" disabled={busy} type="submit">
-              {busy ? "Logowanie…" : "Zaloguj się"}
-            </button>
+            <label>Nazwa użytkownika lub e-mail<input name="identity" required autoComplete="username" /></label>
+            <label>Hasło<input name="password" type="password" required autoComplete="current-password" /></label>
+            <button className="primary-button" disabled={busy} type="submit">{busy ? "Logowanie…" : "Zaloguj się"}</button>
           </form>
         )}
 
         {mode === "forgot" && (
           <form className="auth-form" onSubmit={(event) => onSubmit("forgot", event)}>
-            <p className="form-hint">
-              W lokalnej wersji projektu wiadomość nie zostanie wysłana. Jej treść i jednorazowy
-              link pojawią się w terminalu, w którym działa `python manage.py runserver`.
-            </p>
-            <label>
-              E-mail konta
-              <input name="email" type="email" required autoComplete="email" />
-            </label>
-            <button className="primary-button" disabled={busy} type="submit">
-              {busy ? "Przygotowywanie…" : "Pokaż instrukcję w terminalu"}
-            </button>
+            <p className="form-hint">W lokalnej wersji projektu wiadomość nie zostanie wysłana. Jej treść i jednorazowy link pojawią się w terminalu, w którym działa `python manage.py runserver`.</p>
+            <label>E-mail konta<input name="email" type="email" required autoComplete="email" /></label>
+            <button className="primary-button" disabled={busy} type="submit">{busy ? "Przygotowywanie…" : "Pokaż instrukcję w terminalu"}</button>
           </form>
         )}
 
         {isReset && (
           <form className="auth-form" onSubmit={(event) => onSubmit("reset", event)}>
             <p className="form-hint">Ustaw nowe hasło dla swojego konta.</p>
-            <label>
-              Nowe hasło
-              <input name="password" type="password" required autoComplete="new-password" />
-            </label>
-            <label>
-              Powtórz nowe hasło
-              <input name="passwordConfirmation" type="password" required autoComplete="new-password" />
-            </label>
-            <button className="primary-button" disabled={busy} type="submit">
-              {busy ? "Zapisywanie…" : "Zmień hasło"}
-            </button>
+            <label>Nowe hasło<input name="password" type="password" required autoComplete="new-password" /></label>
+            <label>Powtórz nowe hasło<input name="passwordConfirmation" type="password" required autoComplete="new-password" /></label>
+            <button className="primary-button" disabled={busy} type="submit">{busy ? "Zapisywanie…" : "Zmień hasło"}</button>
           </form>
         )}
 
@@ -157,15 +118,9 @@ function AuthModal({ mode, onClose, onSubmit, busy, error, notice }) {
 
         {!isReset && (
           <div className="auth-links">
-            {mode !== "login" && (
-              <button type="button" onClick={() => onSubmit("show-login")}>Mam już konto</button>
-            )}
-            {mode !== "register" && (
-              <button type="button" onClick={() => onSubmit("show-register")}>Załóż konto</button>
-            )}
-            {mode !== "forgot" && (
-              <button type="button" onClick={() => onSubmit("show-forgot")}>Nie pamiętam hasła</button>
-            )}
+            {mode !== "login" && <button type="button" onClick={() => onSubmit("show-login")}>Mam już konto</button>}
+            {mode !== "register" && <button type="button" onClick={() => onSubmit("show-register")}>Załóż konto</button>}
+            {mode !== "forgot" && <button type="button" onClick={() => onSubmit("show-forgot")}>Nie pamiętam hasła</button>}
           </div>
         )}
       </section>
@@ -175,15 +130,8 @@ function AuthModal({ mode, onClose, onSubmit, busy, error, notice }) {
 
 function RestaurantPhoto({ restaurant }) {
   if (restaurant.photo_url) {
-    return (
-      <img
-        className="restaurant-photo"
-        src={restaurant.photo_url}
-        alt={`Zdjęcie restauracji ${restaurant.name}`}
-      />
-    );
+    return <img className="restaurant-photo" src={restaurant.photo_url} alt={`Zdjęcie restauracji ${restaurant.name}`} />;
   }
-
   return <div className="restaurant-photo restaurant-photo-placeholder">Brak zdjęcia</div>;
 }
 
@@ -200,36 +148,25 @@ export default function App() {
   const [authError, setAuthError] = useState("");
   const [authNotice, setAuthNotice] = useState("");
   const [pageNotice, setPageNotice] = useState("");
-  const [isRestaurantModalOpen, setRestaurantModalOpen] = useState(false);
+  const [restaurantForm, setRestaurantForm] = useState(null);
+  const [selectedRestaurantId, setSelectedRestaurantId] = useState(null);
   const [refreshVersion, setRefreshVersion] = useState(0);
 
-  const selectedLocation = SIMULATED_LOCATIONS.find(
-    (location) => location.id === filters.locationId,
-  );
+  const selectedLocation = SIMULATED_LOCATIONS.find((location) => location.id === filters.locationId);
   const isNearbySearch = selectedLocation?.latitude !== undefined;
 
   const apiRequest = async (path, options = {}) => {
     const method = options.method || "GET";
     const headers = { ...(options.headers || {}) };
-
     if (method !== "GET") {
       headers["Content-Type"] = "application/json";
       const csrfToken = getCookie("csrftoken");
       if (csrfToken) headers["X-CSRFToken"] = csrfToken;
     }
 
-    const response = await fetch(path, {
-      credentials: "same-origin",
-      ...options,
-      method,
-      headers,
-    });
+    const response = await fetch(path, { credentials: "same-origin", ...options, method, headers });
     const payload = await response.json().catch(() => ({}));
-
-    if (!response.ok) {
-      throw new Error(payload.detail || "Wystąpił nieoczekiwany błąd.");
-    }
-
+    if (!response.ok) throw new Error(payload.detail || "Wystąpił nieoczekiwany błąd.");
     return payload;
   };
 
@@ -244,12 +181,10 @@ export default function App() {
     const controller = new AbortController();
     const endpoint = isNearbySearch ? "/api/restaurants/nearby" : "/api/restaurants";
     const url = new URL(endpoint, window.location.origin);
-
     if (filters.name.trim()) url.searchParams.set("name", filters.name.trim());
     if (filters.cuisine !== "Wszystkie") url.searchParams.set("cuisine", filters.cuisine);
     url.searchParams.set("min_rating", filters.minimumRating);
     url.searchParams.set("sort", filters.sort);
-
     if (isNearbySearch) {
       url.searchParams.set("latitude", selectedLocation.latitude);
       url.searchParams.set("longitude", selectedLocation.longitude);
@@ -258,7 +193,6 @@ export default function App() {
 
     setLoading(true);
     setError("");
-
     fetch(url, { signal: controller.signal, credentials: "same-origin" })
       .then(async (response) => {
         if (!response.ok) {
@@ -290,6 +224,8 @@ export default function App() {
     return () => window.clearTimeout(timeoutId);
   }, [pageNotice]);
 
+  const refreshRestaurants = () => setRefreshVersion((currentVersion) => currentVersion + 1);
+
   const openAuth = (mode) => {
     setAuthError("");
     setAuthNotice("");
@@ -310,41 +246,28 @@ export default function App() {
     }
 
     event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    const values = Object.fromEntries(formData.entries());
+    const values = Object.fromEntries(new FormData(event.currentTarget).entries());
     setAuthBusy(true);
     setAuthError("");
     setAuthNotice("");
 
     try {
       if (action === "register") {
-        const payload = await apiRequest("/api/auth/register", {
-          method: "POST",
-          body: JSON.stringify(values),
-        });
+        const payload = await apiRequest("/api/auth/register", { method: "POST", body: JSON.stringify(values) });
         setCurrentUser(payload.user);
         setAuthMode(null);
         setPageNotice("Konto zostało utworzone. Jesteś już zalogowany.");
       }
-
       if (action === "login") {
-        const payload = await apiRequest("/api/auth/login", {
-          method: "POST",
-          body: JSON.stringify(values),
-        });
+        const payload = await apiRequest("/api/auth/login", { method: "POST", body: JSON.stringify(values) });
         setCurrentUser(payload.user);
         setAuthMode(null);
         setPageNotice("Zalogowano pomyślnie.");
       }
-
       if (action === "forgot") {
-        const payload = await apiRequest("/api/auth/password-reset", {
-          method: "POST",
-          body: JSON.stringify(values),
-        });
+        const payload = await apiRequest("/api/auth/password-reset", { method: "POST", body: JSON.stringify(values) });
         setAuthNotice(payload.detail);
       }
-
       if (action === "reset") {
         const payload = await apiRequest("/api/auth/password-reset/confirm", {
           method: "POST",
@@ -365,7 +288,8 @@ export default function App() {
     try {
       await apiRequest("/api/auth/logout", { method: "POST", body: "{}" });
       setCurrentUser(null);
-      setRestaurantModalOpen(false);
+      setRestaurantForm(null);
+      setSelectedRestaurantId(null);
       setPageNotice("Wylogowano.");
     } catch (requestError) {
       setAuthError(requestError.message);
@@ -373,21 +297,30 @@ export default function App() {
     }
   };
 
-  const handleRestaurantCreated = (restaurant) => {
-    setRestaurantModalOpen(false);
-    setPageNotice(`Dodano restaurację „${restaurant.name}”.`);
-    setRefreshVersion((currentVersion) => currentVersion + 1);
+  const handleRestaurantSaved = (restaurant) => {
+    setRestaurantForm(null);
+    setPageNotice(`Zapisano restaurację „${restaurant.name}”.`);
+    refreshRestaurants();
+    setSelectedRestaurantId(restaurant.id);
+  };
+
+  const handleEditRestaurant = (restaurant) => {
+    setSelectedRestaurantId(null);
+    setRestaurantForm({ mode: "edit", restaurant });
+  };
+
+  const handleRestaurantDeleted = (name) => {
+    setSelectedRestaurantId(null);
+    setPageNotice(`Usunięto restaurację „${name}”.`);
+    refreshRestaurants();
   };
 
   const updateFilter = (event) => {
     const { name, value } = event.target;
-
     setFilters((currentFilters) => {
       const nextFilters = { ...currentFilters, [name]: value };
       if (name === "locationId") {
-        if (value === "none" && currentFilters.sort === "distance-asc") {
-          nextFilters.sort = "rating-desc";
-        }
+        if (value === "none" && currentFilters.sort === "distance-asc") nextFilters.sort = "rating-desc";
         if (value !== "none") nextFilters.sort = "distance-asc";
       }
       return nextFilters;
@@ -401,29 +334,20 @@ export default function App() {
     <div className="app-shell">
       <header className="topbar">
         <a className="brand" href="/" onClick={(event) => event.preventDefault()}>
-          <span className="brand-mark" aria-hidden="true">S</span>
-          <span>Smacznie</span>
+          <span className="brand-mark" aria-hidden="true">S</span><span>Smacznie</span>
         </a>
         <div className="topbar-right">
-          <span className="stage-label">Etap 7 · dodawanie restauracji</span>
+          <span className="stage-label">Etap 8 · opinie i zarządzanie</span>
           {currentUser ? (
             <div className="user-controls">
               <span className="user-greeting">Cześć, {currentUser.username}</span>
-              <button className="header-button header-button-primary" type="button" onClick={() => setRestaurantModalOpen(true)}>
-                Dodaj restaurację
-              </button>
-              <button className="header-button" type="button" onClick={handleLogout}>
-                Wyloguj
-              </button>
+              <button className="header-button header-button-primary" type="button" onClick={() => setRestaurantForm({ mode: "add" })}>Dodaj restaurację</button>
+              <button className="header-button" type="button" onClick={handleLogout}>Wyloguj</button>
             </div>
           ) : (
             <div className="user-controls">
-              <button className="header-button" type="button" onClick={() => openAuth("login")}>
-                Zaloguj się
-              </button>
-              <button className="header-button header-button-primary" type="button" onClick={() => openAuth("register")}>
-                Załóż konto
-              </button>
+              <button className="header-button" type="button" onClick={() => openAuth("login")}>Zaloguj się</button>
+              <button className="header-button header-button-primary" type="button" onClick={() => openAuth("register")}>Załóż konto</button>
             </div>
           )}
         </div>
@@ -435,65 +359,22 @@ export default function App() {
         <section className="hero" aria-labelledby="page-title">
           <p className="eyebrow">Portal z ocenami restauracji</p>
           <h1 id="page-title">Znajdź miejsce na dobry posiłek</h1>
-          <p>
-            Wybierz symulowaną lokalizację użytkownika, ustaw promień i zobacz lokale
-            znajdujące się w pobliżu.
-          </p>
+          <p>Przeglądaj lokale, sprawdzaj opinie użytkowników oraz wybierz restauracje w pobliżu symulowanej lokalizacji.</p>
         </section>
 
         <section className="content-layout" aria-label="Wyszukiwanie restauracji">
           <aside className="filters-panel">
-            <div>
-              <p className="eyebrow">Filtry</p>
-              <h2>Wybierz, czego szukasz</h2>
-            </div>
-
+            <div><p className="eyebrow">Filtry</p><h2>Wybierz, czego szukasz</h2></div>
             <form className="filters-form" onSubmit={(event) => event.preventDefault()}>
-              <label>
-                Nazwa restauracji
-                <input name="name" type="search" value={filters.name} onChange={updateFilter} placeholder="np. ramen" />
-              </label>
-
-              <label>
-                Rodzaj kuchni
-                <select name="cuisine" value={filters.cuisine} onChange={updateFilter}>
-                  {cuisineOptions.map((cuisine) => <option key={cuisine} value={cuisine}>{cuisine}</option>)}
-                </select>
-              </label>
-
+              <label>Nazwa restauracji<input name="name" type="search" value={filters.name} onChange={updateFilter} placeholder="np. ramen" /></label>
+              <label>Rodzaj kuchni<select name="cuisine" value={filters.cuisine} onChange={updateFilter}>{cuisineOptions.map((cuisine) => <option key={cuisine} value={cuisine}>{cuisine}</option>)}</select></label>
               <div className="location-filter">
                 <p>Symulowana lokalizacja użytkownika</p>
-                <label>
-                  Pozycja
-                  <select name="locationId" value={filters.locationId} onChange={updateFilter}>
-                    {SIMULATED_LOCATIONS.map((location) => <option key={location.id} value={location.id}>{location.label}</option>)}
-                  </select>
-                </label>
-                {isNearbySearch && (
-                  <label>
-                    Promień wyszukiwania
-                    <select name="radiusKm" value={filters.radiusKm} onChange={updateFilter}>
-                      <option value="0.5">500 m</option><option value="1">1 km</option><option value="2">2 km</option><option value="3">3 km</option><option value="5">5 km</option>
-                    </select>
-                  </label>
-                )}
+                <label>Pozycja<select name="locationId" value={filters.locationId} onChange={updateFilter}>{SIMULATED_LOCATIONS.map((location) => <option key={location.id} value={location.id}>{location.label}</option>)}</select></label>
+                {isNearbySearch && <label>Promień wyszukiwania<select name="radiusKm" value={filters.radiusKm} onChange={updateFilter}><option value="0.5">500 m</option><option value="1">1 km</option><option value="2">2 km</option><option value="3">3 km</option><option value="5">5 km</option></select></label>}
               </div>
-
-              <label>
-                Minimalna ocena
-                <select name="minimumRating" value={filters.minimumRating} onChange={updateFilter}>
-                  <option value="0">Dowolna</option><option value="4">4,0 i więcej</option><option value="4.5">4,5 i więcej</option><option value="4.7">4,7 i więcej</option>
-                </select>
-              </label>
-
-              <label>
-                Sortowanie
-                <select name="sort" value={filters.sort} onChange={updateFilter}>
-                  <option value="distance-asc" disabled={!isNearbySearch}>Najbliżej</option>
-                  <option value="rating-desc">Najwyższa ocena</option><option value="rating-asc">Najniższa ocena</option><option value="name-asc">Nazwa A–Z</option>
-                </select>
-              </label>
-
+              <label>Minimalna ocena<select name="minimumRating" value={filters.minimumRating} onChange={updateFilter}><option value="0">Dowolna</option><option value="4">4,0 i więcej</option><option value="4.5">4,5 i więcej</option><option value="4.7">4,7 i więcej</option></select></label>
+              <label>Sortowanie<select name="sort" value={filters.sort} onChange={updateFilter}><option value="distance-asc" disabled={!isNearbySearch}>Najbliżej</option><option value="rating-desc">Najwyższa ocena</option><option value="rating-asc">Najniższa ocena</option><option value="name-asc">Nazwa A–Z</option></select></label>
               <button className="secondary-button" type="button" onClick={resetFilters}>Wyczyść filtry</button>
             </form>
           </aside>
@@ -501,7 +382,7 @@ export default function App() {
           <section className="results-section" aria-live="polite">
             <div className="results-heading">
               <div><p className="eyebrow">Wyniki</p><h2>{resultLabel(restaurants.length)}</h2></div>
-              <p>{isNearbySearch ? `Pozycja symulowana: ${selectedLocation.label}. Promień: ${filters.radiusKm} km.` : "Filtry są wykonywane w bazie danych przez Django ORM."}</p>
+              <p>{isNearbySearch ? `Pozycja symulowana: ${selectedLocation.label}. Promień: ${filters.radiusKm} km.` : "Oceny są aktualizowane na podstawie opublikowanych opinii."}</p>
             </div>
 
             {loading ? (
@@ -518,7 +399,7 @@ export default function App() {
                       {restaurant.distance_km !== null ? <span className="distance-label">{formatDistance(restaurant.distance_km)}</span> : <span className="price-level">Dane z MySQL</span>}
                     </div>
                     <div className="card-content"><h3>{restaurant.name}</h3><p className="address">{restaurant.address}</p><p className="description">{restaurant.description || "Brak dodatkowego opisu."}</p></div>
-                    <footer className="rating-row"><div><span className="star" aria-hidden="true">★</span><strong>{formatRating(restaurant.average_rating)}</strong><span className="review-count">({restaurant.review_count} opinii)</span></div><button className="details-button" type="button">Szczegóły</button></footer>
+                    <footer className="rating-row"><div><span className="star" aria-hidden="true">★</span><strong>{formatRating(restaurant.average_rating)}</strong><span className="review-count">({restaurant.review_count} opinii)</span></div><button className="details-button" type="button" onClick={() => setSelectedRestaurantId(restaurant.id)}>Szczegóły</button></footer>
                   </article>
                 ))}
               </div>
@@ -529,13 +410,24 @@ export default function App() {
         </section>
       </main>
 
-      <footer className="footer">Projekt zaliczeniowy · Aplikacje internetowe · Etap 7</footer>
+      <footer className="footer">Projekt zaliczeniowy · Aplikacje internetowe · Etap 8</footer>
       <AuthModal mode={authMode} onClose={closeAuth} onSubmit={submitAuth} busy={authBusy} error={authError} notice={authNotice} />
-      {isRestaurantModalOpen && currentUser && (
+      {restaurantForm && currentUser && (
         <AddRestaurantModal
           cuisines={cuisines}
-          onClose={() => setRestaurantModalOpen(false)}
-          onCreated={handleRestaurantCreated}
+          restaurant={restaurantForm.mode === "edit" ? restaurantForm.restaurant : null}
+          onClose={() => setRestaurantForm(null)}
+          onSaved={handleRestaurantSaved}
+        />
+      )}
+      {selectedRestaurantId && (
+        <RestaurantDetailsModal
+          restaurantId={selectedRestaurantId}
+          currentUser={currentUser}
+          onClose={() => setSelectedRestaurantId(null)}
+          onEditRestaurant={handleEditRestaurant}
+          onRestaurantChanged={refreshRestaurants}
+          onRestaurantDeleted={handleRestaurantDeleted}
         />
       )}
     </div>

@@ -5,6 +5,7 @@ import App from "./App.jsx";
 import "./styles.css";
 import "./auth.css";
 import "./restaurantForm.css";
+import "./reviews.css";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>

@@ -2,9 +2,9 @@
 
 Projekt zaliczeniowy z przedmiotu **Aplikacje internetowe**.
 
-## Etap 7 — dodawanie restauracji ze zdjęciem
+## Etap 8 — opinie, edycja i usuwanie własnych danych
 
-Aplikacja składa się z Reacta, Django i MySQL. Gość może przeglądać restauracje i miejsca w pobliżu symulowanej lokalizacji. Zalogowany użytkownik może dodać nową restaurację wraz z adresem, pozycją geograficzną, rodzajami kuchni oraz zdjęciem.
+Aplikacja składa się z Reacta, Django i MySQL. Gość może przeglądać restauracje oraz miejsca w pobliżu symulowanej lokalizacji. Zalogowany użytkownik może dodać restaurację, jednorazowo opublikować dla niej opinię, a następnie edytować albo usunąć wyłącznie własne dane.
 
 ```text
 React + Vite -> Django API / Django ORM -> MySQL
@@ -15,26 +15,30 @@ React + Vite -> Django API / Django ORM -> MySQL
 ### Zaimplementowane funkcje
 
 - lista restauracji z filtrowaniem po nazwie, kuchni, ocenie i odległości,
-- symulowane pozycje użytkownika w Poznaniu oraz promień wyszukiwania,
+- symulowane lokalizacje użytkownika w Poznaniu oraz promień wyszukiwania,
 - rejestracja, logowanie, wylogowanie oraz reset hasła przez link wypisywany w terminalu Django,
 - dodawanie restauracji tylko przez zalogowanego użytkownika,
-- zapis właściciela restauracji w bazie,
-- formularz nowej restauracji: nazwa, adres, szerokość i długość geograficzna, opis, rodzaje kuchni i zdjęcie,
-- wybór co najmniej jednego rodzaju kuchni,
-- upload JPG, PNG albo WebP do 5 MB,
-- walidacja, czy przesłany plik jest rzeczywistym obrazem,
-- lokalne przechowywanie zdjęć w `backend/media/restaurants/`,
-- prezentowanie zdjęć na kartach restauracji,
-- Django Admin z widocznym właścicielem restauracji.
+- zdjęcia restauracji i zapis właściciela rekordu,
+- szczegóły restauracji z listą opinii,
+- opinia: obowiązkowa ocena od 1 do 5 oraz opcjonalny komentarz do 2000 znaków,
+- ograniczenie w bazie danych: **jedna opinia użytkownika dla jednej restauracji**,
+- edycja i usuwanie wyłącznie własnej opinii,
+- edycja i usuwanie wyłącznie własnej restauracji,
+- dialog potwierdzenia przed każdą nieodwracalną operacją usunięcia,
+- automatyczne przeliczenie średniej oceny i liczby opinii po dodaniu, zmianie lub usunięciu opinii,
+- blokady transakcyjne i constraint `UNIQUE(restaurant, author)` zabezpieczające opinię przed podwójnym utworzeniem przy równoczesnych żądaniach,
+- Django Admin dla restauracji, kuchni i opinii.
 
 ## Wymagania
 
 - Node.js 20.19+ albo 22.12+,
 - Python 3.10+,
 - MySQL 8+ albo MariaDB,
-- Pillow — instaluje się automatycznie z `backend/requirements.txt`.
+- Pillow — instalowane z `backend/requirements.txt`.
 
-## Uruchomienie po pobraniu etapu 7
+## Uruchomienie po pobraniu etapu 8
+
+Najpierw zmerguj etap 7, ponieważ etap 8 jest oparty na jego modelu restauracji ze zdjęciem i właścicielem.
 
 ### Backend
 
@@ -46,7 +50,14 @@ python manage.py migrate
 python manage.py runserver
 ```
 
-Migracja `0002_restaurant_owner_photo` doda do tabeli restauracji właściciela i ścieżkę do pliku zdjęcia.
+Migracja `0003_review` tworzy tabelę opinii oraz dwa ograniczenia:
+
+```text
+UNIQUE(restaurant_id, author_id)
+CHECK(rating BETWEEN 1 AND 5)
+```
+
+Nie uruchamiaj `makemigrations`, ponieważ migracja jest już w repozytorium.
 
 Przykładowa konfiguracja `backend/.env`:
 
@@ -61,71 +72,68 @@ FRONTEND_URL=http://localhost:5173
 
 ### Frontend
 
-W drugim terminalu, w głównym katalogu projektu:
+W drugim terminalu, w katalogu głównym projektu:
 
 ```bash
 npm install
 npm run dev
 ```
 
-Vite przekazuje `/api` i `/media` do Django, dlatego zdjęcia dodane lokalnie będą wyświetlały się na stronie pod `http://localhost:5173`.
+## Testowanie opinii
 
-## Dodawanie restauracji
+1. Załóż konto A i otwórz szczegóły wybranej restauracji przyciskiem **Szczegóły**.
+2. Wybierz ocenę od 1 do 5, opcjonalnie wpisz komentarz i kliknij **Opublikuj opinię**.
+3. Sprawdź, czy średnia oraz licznik opinii na liście zmieniły się automatycznie.
+4. W szczegółach tej samej restauracji zobaczysz przyciski **Edytuj opinię** oraz **Usuń opinię** zamiast drugiego formularza dodawania.
+5. Kliknij **Usuń opinię**. Pojawi się dodatkowe okno potwierdzenia; dopiero jego czerwony przycisk wykonuje nieodwracalne usunięcie.
+6. Załóż konto B i sprawdź, że konto B może utworzyć własną opinię, ale nie ma przycisków edycji/usuwania opinii konta A.
 
-1. Załóż konto albo zaloguj się.
-2. W nagłówku kliknij **Dodaj restaurację**.
-3. Wpisz nazwę i adres.
-4. Podaj współrzędne. Dla testu możesz użyć np. Starego Rynku:
+## Testowanie zarządzania restauracją
 
-```text
-Szerokość: 52.408431
-Długość: 16.934216
-```
-
-5. Zaznacz co najmniej jeden rodzaj kuchni.
-6. Wybierz zdjęcie JPG, PNG albo WebP o rozmiarze do 5 MB.
-7. Kliknij **Dodaj restaurację**.
-
-Po powodzeniu okno formularza zamknie się, na stronie pojawi się komunikat sukcesu, a lista restauracji odświeży się automatycznie.
+1. Zaloguj się jako użytkownik, który utworzył restaurację w etapie 7.
+2. Otwórz jej szczegóły.
+3. Pojawią się akcje **Edytuj restaurację** i **Usuń restaurację**.
+4. W edycji można zmienić nazwę, adres, współrzędne, opis, kuchnie i opcjonalnie zdjęcie. Bez wyboru nowego pliku stare zdjęcie zostanie zachowane.
+5. Usunięcie wymaga potwierdzenia; usuwa restaurację oraz powiązane opinie i jest nieodwracalne.
+6. Użytkownik, który nie jest właścicielem restauracji, nie zobaczy tych przycisków, a backend i tak zwróci `403`, gdyby próbował wywołać endpoint ręcznie.
 
 ## API
 
-### Pobieranie restauracji
+### Restauracje
 
 ```text
-GET /api/restaurants
-GET /api/restaurants/nearby
-```
-
-### Tworzenie restauracji
-
-```text
+GET  /api/restaurants
+GET  /api/restaurants/nearby
+GET  /api/restaurants/<restaurant_id>
 POST /api/restaurants
-Content-Type: multipart/form-data
+POST /api/restaurants/<restaurant_id>/edit
+DELETE /api/restaurants/<restaurant_id>/delete
 ```
 
-Wymagane pola formularza:
+`POST /api/restaurants/<restaurant_id>/edit` używa `multipart/form-data`, ponieważ może zawierać nowe zdjęcie.
+
+### Opinie
 
 ```text
-name
-address
-latitude
-longitude
-cuisine_names  # JSON, np. ["Polska", "Włoska"]
-photo
+POST   /api/restaurants/<restaurant_id>/reviews
+PATCH  /api/reviews/<review_id>
+DELETE /api/reviews/<review_id>/delete
 ```
 
-Pole opcjonalne:
+Przykładowe body dla utworzenia lub edycji opinii:
 
-```text
-description
+```json
+{
+  "rating": 5,
+  "comment": "Bardzo dobry ramen i szybka obsługa."
+}
 ```
 
-Endpoint wymaga zalogowanej sesji Django i tokenu CSRF. React obsługuje oba elementy automatycznie.
+Wszystkie mutujące endpointy wymagają zalogowanej sesji Django oraz tokenu CSRF. React pobiera i wysyła token automatycznie.
 
 ## Reset hasła w wersji lokalnej
 
-Po wybraniu opcji **Nie pamiętam hasła**, Django nie wysyła prawdziwego e-maila. Pełna treść wiadomości z jednorazowym linkiem resetu pojawia się w terminalu uruchomionym przez:
+Po opcji **Nie pamiętam hasła** Django nie wysyła prawdziwego e-maila. Pełna wiadomość z jednorazowym linkiem resetu pojawia się w terminalu uruchomionym przez:
 
 ```bash
 python manage.py runserver
@@ -143,7 +151,6 @@ Następnie otwórz `http://127.0.0.1:8000/admin/`.
 
 ## Kolejne etapy
 
-- szczegół restauracji i lista komentarzy,
-- wystawianie jednej opinii przez użytkownika dla restauracji,
-- usuwanie własnej restauracji,
-- wyszukiwanie pełnotekstowe komentarzy.
+- wyszukiwanie pełnotekstowe komentarzy,
+- dodatkowe zdjęcia restauracji,
+- publikacja aplikacji i przejście z lokalnego magazynu mediów na produkcyjny storage.
