@@ -2,33 +2,34 @@
 
 Projekt zaliczeniowy z przedmiotu **Aplikacje internetowe**.
 
-## Etap 3
+## Etap 6 — konta użytkowników i reset hasła
 
-Aplikacja ma frontend React i backend Django. Lista restauracji jest pobierana z API Django, które korzysta z MySQL przez Django ORM. Gość może też wyświetlić restauracje w pobliżu symulowanej pozycji użytkownika.
+Aplikacja ma frontend React i backend Django. Lista restauracji jest pobierana z API Django, które korzysta z MySQL przez Django ORM. Gość może wyświetlić lokale w pobliżu symulowanej pozycji, a użytkownik może założyć konto, zalogować się oraz zresetować hasło.
 
 ```text
-React + Vite  ->  Django API  ->  Django ORM / obliczenie odległości  ->  MySQL
+React + Vite  ->  Django API  ->  Django ORM  ->  MySQL
+                           |
+                           +-> console.EmailBackend (terminal podczas developmentu)
 ```
 
 ### Zaimplementowane funkcje
 
 - przechowywanie restauracji oraz rodzajów kuchni w MySQL,
 - relacja wiele-do-wielu: restauracja — rodzaj kuchni,
-- endpoint `GET /api/restaurants`,
-- endpoint `GET /api/restaurants/nearby`,
-- filtrowanie po nazwie, kuchni i minimalnej ocenie po stronie backendu,
-- filtrowanie restauracji w promieniu od symulowanej lokalizacji użytkownika,
-- trzy symulowane lokalizacje w Poznaniu: Stary Rynek, Dworzec Główny i Rynek Jeżycki,
-- wybór promienia od 500 m do 5 km,
+- filtrowanie po nazwie, kuchni, ocenie i odległości,
+- trzy symulowane lokalizacje w Poznaniu i promień od 500 m do 5 km,
 - obliczanie odległości przez MySQL według wzoru Haversine'a,
-- zwracanie i prezentowanie odległości restauracji w kilometrach lub metrach,
-- łączenie filtra odległości z nazwą, kuchnią i minimalną oceną,
-- sortowanie po nazwie, ocenie lub odległości,
-- dane startowe ładowane komendą Django,
-- panel Django Admin do podglądu i edycji rekordów,
-- proxy Vite, dzięki któremu React komunikuje się z Django lokalnie bez dodatkowej konfiguracji CORS.
+- rejestracja użytkownika z nazwą, e-mailem i hasłem,
+- logowanie nazwą użytkownika albo e-mailem,
+- wylogowanie z sesji Django,
+- hasła przechowywane jako hashe przez Django,
+- walidacja haseł Django: długość, zbyt proste hasła i podobieństwo do danych użytkownika,
+- ochrona żądań modyfikujących przed CSRF,
+- reset hasła przez jednorazowy link oparty na tokenie Django,
+- w trybie lokalnym wiadomość resetująca jest wypisywana w terminalu backendu, bez faktycznej wysyłki e-maila,
+- panel Django Admin do podglądu danych.
 
-> Na tym etapie `average_rating` i `review_count` są zapisanymi danymi demonstracyjnymi. W etapie z kontami i opiniami zostaną zastąpione mechanizmem ocen wystawianych przez użytkowników.
+> Na tym etapie `average_rating` i `review_count` są zapisanymi danymi demonstracyjnymi. W etapie z opiniami zostaną zastąpione mechanizmem ocen wystawianych przez użytkowników.
 
 ## Wymagania
 
@@ -55,7 +56,7 @@ pip install -r requirements.txt
 cp .env.example .env
 ```
 
-Otwórz `backend/.env` i ustaw rzeczywiste dane logowania, na przykład:
+Otwórz `backend/.env` i ustaw rzeczywiste dane logowania:
 
 ```env
 MYSQL_DATABASE=restauracje_db
@@ -63,6 +64,7 @@ MYSQL_USER=restauracja_app
 MYSQL_PASSWORD=twoje_lokalne_haslo
 MYSQL_HOST=127.0.0.1
 MYSQL_PORT=3306
+FRONTEND_URL=http://localhost:5173
 ```
 
 Następnie wykonaj migracje, dodaj dane startowe i uruchom Django:
@@ -86,53 +88,57 @@ npm run dev
 
 Otwórz adres pokazany przez Vite, zazwyczaj `http://localhost:5173`.
 
+## Test rejestracji i resetu hasła
+
+1. Kliknij **Załóż konto** i zarejestruj użytkownika.
+2. Wyloguj się.
+3. Kliknij **Zaloguj się**, a następnie **Nie pamiętam hasła**.
+4. Wpisz e-mail konta i zatwierdź.
+5. Spójrz do terminala, w którym działa `python manage.py runserver`. Django wypisze wiadomość podobną do:
+
+```text
+Subject: Reset hasła — Smacznie
+To: twoj-email@example.com
+
+Otrzymaliśmy prośbę o zmianę hasła do konta Smacznie.
+
+Aby ustawić nowe hasło, otwórz jednorazowy link:
+http://localhost:5173/reset-hasla/<uid>/<token>
+```
+
+6. Otwórz ten link w przeglądarce.
+7. Ustaw nowe hasło i zaloguj się nim.
+
+Link jest jednorazowy: po zmianie hasła token przestaje działać. Interfejs celowo pokazuje taki sam komunikat także dla nieistniejącego e-maila, aby nie zdradzać, które adresy mają konta.
+
 ## API
 
-### Pełna lista restauracji
+### Restauracje
 
 ```text
 GET /api/restaurants
-```
-
-Obsługiwane parametry opcjonalne:
-
-```text
-name=ramen
-cuisine=Polska
-min_rating=4.5
-sort=rating-desc | rating-asc | name-asc
-```
-
-### Restauracje w pobliżu
-
-```text
 GET /api/restaurants/nearby
 ```
 
-Dla tego endpointu wymagane są parametry lokalizacji:
-
-```text
-latitude=52.408431
-longitude=16.934216
-radius_km=2
-```
-
-Możesz dodatkowo łączyć je z istniejącymi filtrami i sortowaniem:
-
-```text
-name=ramen
-cuisine=Japońska
-min_rating=4
-sort=distance-asc
-```
-
-Przykład — restauracje do 2 km od Starego Rynku:
+Przykład restauracji do 2 km od Starego Rynku:
 
 ```text
 http://127.0.0.1:8000/api/restaurants/nearby?latitude=52.408431&longitude=16.934216&radius_km=2&sort=distance-asc
 ```
 
-Odpowiedź zawiera dodatkowo pole `distance_km` dla każdej znalezionej restauracji.
+### Konta
+
+```text
+GET  /api/auth/csrf
+GET  /api/auth/me
+POST /api/auth/register
+POST /api/auth/login
+POST /api/auth/logout
+POST /api/auth/password-reset
+POST /api/auth/password-reset/confirm
+```
+
+Frontend korzysta z tych endpointów automatycznie. Endpointy POST wymagają tokenu CSRF, który React pobiera z `/api/auth/csrf`.
 
 ## Panel administracyjny Django
 
@@ -144,13 +150,12 @@ source .venv/bin/activate
 python manage.py createsuperuser
 ```
 
-wejdź na `http://127.0.0.1:8000/admin/`. Możesz tam przeglądać, dodawać i edytować restauracje oraz rodzaje kuchni.
+wejdź na `http://127.0.0.1:8000/admin/`.
 
 ## Kolejny etap
 
-- rejestracja, logowanie i reset hasła,
-- dodawanie restauracji przez użytkownika,
-- model opinii użytkownika z ograniczeniem jednej oceny na restaurację,
+- dodawanie restauracji przez zalogowanego użytkownika,
+- model opinii z ograniczeniem jednej oceny na użytkownika i restaurację,
 - zdjęcia restauracji,
 - szczegóły restauracji i komentarze,
-- wyszukiwanie pełnotekstowe komentarzy.
+- pełnotekstowe wyszukiwanie komentarzy.
