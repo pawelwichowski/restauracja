@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import AddRestaurantModal from "./AddRestaurantModal.jsx";
 
 const SIMULATED_LOCATIONS = [
   { id: "none", label: "Nie filtruj po lokalizacji" },
@@ -157,25 +158,33 @@ function AuthModal({ mode, onClose, onSubmit, busy, error, notice }) {
         {!isReset && (
           <div className="auth-links">
             {mode !== "login" && (
-              <button type="button" onClick={() => onSubmit("show-login")}>
-                Mam już konto
-              </button>
+              <button type="button" onClick={() => onSubmit("show-login")}>Mam już konto</button>
             )}
             {mode !== "register" && (
-              <button type="button" onClick={() => onSubmit("show-register")}>
-                Załóż konto
-              </button>
+              <button type="button" onClick={() => onSubmit("show-register")}>Załóż konto</button>
             )}
             {mode !== "forgot" && (
-              <button type="button" onClick={() => onSubmit("show-forgot")}>
-                Nie pamiętam hasła
-              </button>
+              <button type="button" onClick={() => onSubmit("show-forgot")}>Nie pamiętam hasła</button>
             )}
           </div>
         )}
       </section>
     </div>
   );
+}
+
+function RestaurantPhoto({ restaurant }) {
+  if (restaurant.photo_url) {
+    return (
+      <img
+        className="restaurant-photo"
+        src={restaurant.photo_url}
+        alt={`Zdjęcie restauracji ${restaurant.name}`}
+      />
+    );
+  }
+
+  return <div className="restaurant-photo restaurant-photo-placeholder">Brak zdjęcia</div>;
 }
 
 export default function App() {
@@ -191,6 +200,8 @@ export default function App() {
   const [authError, setAuthError] = useState("");
   const [authNotice, setAuthNotice] = useState("");
   const [pageNotice, setPageNotice] = useState("");
+  const [isRestaurantModalOpen, setRestaurantModalOpen] = useState(false);
+  const [refreshVersion, setRefreshVersion] = useState(0);
 
   const selectedLocation = SIMULATED_LOCATIONS.find(
     (location) => location.id === filters.locationId,
@@ -271,7 +282,7 @@ export default function App() {
       });
 
     return () => controller.abort();
-  }, [filters, isNearbySearch, selectedLocation]);
+  }, [filters, isNearbySearch, selectedLocation, refreshVersion]);
 
   useEffect(() => {
     if (!pageNotice) return undefined;
@@ -312,7 +323,8 @@ export default function App() {
           body: JSON.stringify(values),
         });
         setCurrentUser(payload.user);
-        setAuthNotice("Konto zostało utworzone. Jesteś już zalogowany.");
+        setAuthMode(null);
+        setPageNotice("Konto zostało utworzone. Jesteś już zalogowany.");
       }
 
       if (action === "login") {
@@ -353,10 +365,18 @@ export default function App() {
     try {
       await apiRequest("/api/auth/logout", { method: "POST", body: "{}" });
       setCurrentUser(null);
+      setRestaurantModalOpen(false);
+      setPageNotice("Wylogowano.");
     } catch (requestError) {
       setAuthError(requestError.message);
       openAuth("login");
     }
+  };
+
+  const handleRestaurantCreated = (restaurant) => {
+    setRestaurantModalOpen(false);
+    setPageNotice(`Dodano restaurację „${restaurant.name}”.`);
+    setRefreshVersion((currentVersion) => currentVersion + 1);
   };
 
   const updateFilter = (event) => {
@@ -385,10 +405,13 @@ export default function App() {
           <span>Smacznie</span>
         </a>
         <div className="topbar-right">
-          <span className="stage-label">Etap 6 · konta użytkowników</span>
+          <span className="stage-label">Etap 7 · dodawanie restauracji</span>
           {currentUser ? (
             <div className="user-controls">
               <span className="user-greeting">Cześć, {currentUser.username}</span>
+              <button className="header-button header-button-primary" type="button" onClick={() => setRestaurantModalOpen(true)}>
+                Dodaj restaurację
+              </button>
               <button className="header-button" type="button" onClick={handleLogout}>
                 Wyloguj
               </button>
@@ -489,11 +512,12 @@ export default function App() {
               <div className="restaurant-grid">
                 {restaurants.map((restaurant) => (
                   <article className="restaurant-card" key={restaurant.id}>
+                    <RestaurantPhoto restaurant={restaurant} />
                     <div className="card-topline">
                       <span className="cuisine-badge">{restaurant.cuisines.join(", ")}</span>
                       {restaurant.distance_km !== null ? <span className="distance-label">{formatDistance(restaurant.distance_km)}</span> : <span className="price-level">Dane z MySQL</span>}
                     </div>
-                    <div className="card-content"><h3>{restaurant.name}</h3><p className="address">{restaurant.address}</p><p className="description">{restaurant.description}</p></div>
+                    <div className="card-content"><h3>{restaurant.name}</h3><p className="address">{restaurant.address}</p><p className="description">{restaurant.description || "Brak dodatkowego opisu."}</p></div>
                     <footer className="rating-row"><div><span className="star" aria-hidden="true">★</span><strong>{formatRating(restaurant.average_rating)}</strong><span className="review-count">({restaurant.review_count} opinii)</span></div><button className="details-button" type="button">Szczegóły</button></footer>
                   </article>
                 ))}
@@ -505,8 +529,15 @@ export default function App() {
         </section>
       </main>
 
-      <footer className="footer">Projekt zaliczeniowy · Aplikacje internetowe · Etap 6</footer>
+      <footer className="footer">Projekt zaliczeniowy · Aplikacje internetowe · Etap 7</footer>
       <AuthModal mode={authMode} onClose={closeAuth} onSubmit={submitAuth} busy={authBusy} error={authError} notice={authNotice} />
+      {isRestaurantModalOpen && currentUser && (
+        <AddRestaurantModal
+          cuisines={cuisines}
+          onClose={() => setRestaurantModalOpen(false)}
+          onCreated={handleRestaurantCreated}
+        />
+      )}
     </div>
   );
 }
