@@ -190,6 +190,7 @@ export default function App() {
   const [authBusy, setAuthBusy] = useState(false);
   const [authError, setAuthError] = useState("");
   const [authNotice, setAuthNotice] = useState("");
+  const [pageNotice, setPageNotice] = useState("");
 
   const selectedLocation = SIMULATED_LOCATIONS.find(
     (location) => location.id === filters.locationId,
@@ -272,6 +273,12 @@ export default function App() {
     return () => controller.abort();
   }, [filters, isNearbySearch, selectedLocation]);
 
+  useEffect(() => {
+    if (!pageNotice) return undefined;
+    const timeoutId = window.setTimeout(() => setPageNotice(""), 4000);
+    return () => window.clearTimeout(timeoutId);
+  }, [pageNotice]);
+
   const openAuth = (mode) => {
     setAuthError("");
     setAuthNotice("");
@@ -314,7 +321,8 @@ export default function App() {
           body: JSON.stringify(values),
         });
         setCurrentUser(payload.user);
-        setAuthNotice("Zalogowano pomyślnie.");
+        setAuthMode(null);
+        setPageNotice("Zalogowano pomyślnie.");
       }
 
       if (action === "forgot") {
@@ -331,8 +339,8 @@ export default function App() {
           body: JSON.stringify({ ...values, ...resetRoute }),
         });
         window.history.replaceState({}, "", "/");
-        setAuthMode("login");
-        setAuthNotice(payload.detail);
+        setAuthMode(null);
+        setPageNotice(payload.detail);
       }
     } catch (requestError) {
       setAuthError(requestError.message);
@@ -397,6 +405,8 @@ export default function App() {
           )}
         </div>
       </header>
+
+      {pageNotice && <p className="page-notice" role="status">{pageNotice}</p>}
 
       <main>
         <section className="hero" aria-labelledby="page-title">
