@@ -5,8 +5,6 @@ SAMPLE_RESTAURANTS = [
         "description": "Domowy makaron, pizza na cienkim cieście i klasyczne włoskie desery.",
         "latitude": "52.407876",
         "longitude": "16.929423",
-        "average_rating": "4.8",
-        "review_count": 184,
         "cuisines": ["Włoska"],
     },
     {
@@ -15,8 +13,6 @@ SAMPLE_RESTAURANTS = [
         "description": "Ramen gotowany od podstaw, azjatyckie przystawki i sezonowe menu.",
         "latitude": "52.406434",
         "longitude": "16.920563",
-        "average_rating": "4.7",
-        "review_count": 231,
         "cuisines": ["Japońska"],
     },
     {
@@ -25,8 +21,6 @@ SAMPLE_RESTAURANTS = [
         "description": "Nowoczesne dania inspirowane kuchnią wielkopolską.",
         "latitude": "52.404820",
         "longitude": "16.921892",
-        "average_rating": "4.4",
-        "review_count": 96,
         "cuisines": ["Polska"],
     },
     {
@@ -35,8 +29,6 @@ SAMPLE_RESTAURANTS = [
         "description": "Aromatyczne curry, wypiekane naan i opcje wegetariańskie.",
         "latitude": "52.403652",
         "longitude": "16.925771",
-        "average_rating": "4.6",
-        "review_count": 147,
         "cuisines": ["Indyjska"],
     },
     {
@@ -45,8 +37,6 @@ SAMPLE_RESTAURANTS = [
         "description": "Sezonowe roślinne dania, śniadania i desery bez mięsa.",
         "latitude": "52.403051",
         "longitude": "16.925073",
-        "average_rating": "4.2",
-        "review_count": 73,
         "cuisines": ["Wegetariańska"],
     },
     {
@@ -55,8 +45,6 @@ SAMPLE_RESTAURANTS = [
         "description": "Tacos, burrito i ostre sosy przygotowywane na miejscu.",
         "latitude": "52.409725",
         "longitude": "16.934671",
-        "average_rating": "4.5",
-        "review_count": 121,
         "cuisines": ["Meksykańska"],
     },
     {
@@ -65,8 +53,6 @@ SAMPLE_RESTAURANTS = [
         "description": "Kuchnia polska w bardziej eleganckim wydaniu.",
         "latitude": "52.410993",
         "longitude": "16.939152",
-        "average_rating": "4.0",
-        "review_count": 52,
         "cuisines": ["Polska"],
     },
     {
@@ -75,8 +61,6 @@ SAMPLE_RESTAURANTS = [
         "description": "Dania z oliwą, świeżymi warzywami i rybami.",
         "latitude": "52.405175",
         "longitude": "16.928743",
-        "average_rating": "4.3",
-        "review_count": 88,
         "cuisines": ["Śródziemnomorska"],
     },
 ]
