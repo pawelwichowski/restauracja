@@ -1,27 +1,26 @@
 import { useEffect, useState } from "react";
 import AddRestaurantModal from "./AddRestaurantModal.jsx";
+import CommentSearchModal from "./CommentSearchModal.jsx";
 import RestaurantDetailsModal from "./RestaurantDetailsModal.jsx";
 
 const SIMULATED_LOCATIONS = [
   { id: "none", label: "Nie filtruj po lokalizacji" },
-  {
-    id: "stary-rynek",
-    label: "Stary Rynek, Poznań",
-    latitude: 52.408431,
-    longitude: 16.934216,
-  },
-  {
-    id: "dworzec-glowny",
-    label: "Dworzec Główny, Poznań",
-    latitude: 52.402429,
-    longitude: 16.910797,
-  },
-  {
-    id: "rynek-jezycki",
-    label: "Rynek Jeżycki, Poznań",
-    latitude: 52.408255,
-    longitude: 16.898405,
-  },
+  { id: "stary-rynek", label: "Stary Rynek, Poznań", latitude: 52.408431, longitude: 16.934216 },
+  { id: "dworzec-glowny", label: "Dworzec Główny, Poznań", latitude: 52.402429, longitude: 16.910797 },
+  { id: "rynek-jezycki", label: "Rynek Jeżycki, Poznań", latitude: 52.408255, longitude: 16.898405 },
+];
+
+const RATING_OPTIONS = [
+  ["0", "Dowolna"],
+  ["1", "1,0 i więcej"],
+  ["1.5", "1,5 i więcej"],
+  ["2", "2,0 i więcej"],
+  ["2.5", "2,5 i więcej"],
+  ["3", "3,0 i więcej"],
+  ["3.5", "3,5 i więcej"],
+  ["4", "4,0 i więcej"],
+  ["4.5", "4,5 i więcej"],
+  ["5", "5,0"],
 ];
 
 const initialFilters = {
@@ -150,6 +149,7 @@ export default function App() {
   const [pageNotice, setPageNotice] = useState("");
   const [restaurantForm, setRestaurantForm] = useState(null);
   const [selectedRestaurantId, setSelectedRestaurantId] = useState(null);
+  const [isCommentSearchOpen, setCommentSearchOpen] = useState(false);
   const [refreshVersion, setRefreshVersion] = useState(0);
 
   const selectedLocation = SIMULATED_LOCATIONS.find((location) => location.id === filters.locationId);
@@ -290,6 +290,7 @@ export default function App() {
       setCurrentUser(null);
       setRestaurantForm(null);
       setSelectedRestaurantId(null);
+      setCommentSearchOpen(false);
       setPageNotice("Wylogowano.");
     } catch (requestError) {
       setAuthError(requestError.message);
@@ -315,6 +316,11 @@ export default function App() {
     refreshRestaurants();
   };
 
+  const openRestaurantFromCommentSearch = (restaurantId) => {
+    setCommentSearchOpen(false);
+    setSelectedRestaurantId(restaurantId);
+  };
+
   const updateFilter = (event) => {
     const { name, value } = event.target;
     setFilters((currentFilters) => {
@@ -337,10 +343,11 @@ export default function App() {
           <span className="brand-mark" aria-hidden="true">S</span><span>Smacznie</span>
         </a>
         <div className="topbar-right">
-          <span className="stage-label">Etap 8 · opinie i zarządzanie</span>
+          <span className="stage-label">Etap 11 · wyszukiwanie komentarzy</span>
           {currentUser ? (
             <div className="user-controls">
               <span className="user-greeting">Cześć, {currentUser.username}</span>
+              <button className="header-button" type="button" onClick={() => setCommentSearchOpen(true)}>Szukaj komentarzy</button>
               <button className="header-button header-button-primary" type="button" onClick={() => setRestaurantForm({ mode: "add" })}>Dodaj restaurację</button>
               <button className="header-button" type="button" onClick={handleLogout}>Wyloguj</button>
             </div>
@@ -359,7 +366,7 @@ export default function App() {
         <section className="hero" aria-labelledby="page-title">
           <p className="eyebrow">Portal z ocenami restauracji</p>
           <h1 id="page-title">Znajdź miejsce na dobry posiłek</h1>
-          <p>Przeglądaj lokale, sprawdzaj opinie użytkowników oraz wybierz restauracje w pobliżu symulowanej lokalizacji.</p>
+          <p>Przeglądaj lokale, sprawdzaj opinie użytkowników i wyszukuj interesujące frazy w komentarzach.</p>
         </section>
 
         <section className="content-layout" aria-label="Wyszukiwanie restauracji">
@@ -373,7 +380,7 @@ export default function App() {
                 <label>Pozycja<select name="locationId" value={filters.locationId} onChange={updateFilter}>{SIMULATED_LOCATIONS.map((location) => <option key={location.id} value={location.id}>{location.label}</option>)}</select></label>
                 {isNearbySearch && <label>Promień wyszukiwania<select name="radiusKm" value={filters.radiusKm} onChange={updateFilter}><option value="0.5">500 m</option><option value="1">1 km</option><option value="2">2 km</option><option value="3">3 km</option><option value="5">5 km</option></select></label>}
               </div>
-              <label>Minimalna ocena<select name="minimumRating" value={filters.minimumRating} onChange={updateFilter}><option value="0">Dowolna</option><option value="4">4,0 i więcej</option><option value="4.5">4,5 i więcej</option><option value="4.7">4,7 i więcej</option></select></label>
+              <label>Minimalna ocena<select name="minimumRating" value={filters.minimumRating} onChange={updateFilter}>{RATING_OPTIONS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
               <label>Sortowanie<select name="sort" value={filters.sort} onChange={updateFilter}><option value="distance-asc" disabled={!isNearbySearch}>Najbliżej</option><option value="rating-desc">Najwyższa ocena</option><option value="rating-asc">Najniższa ocena</option><option value="name-asc">Nazwa A–Z</option></select></label>
               <button className="secondary-button" type="button" onClick={resetFilters}>Wyczyść filtry</button>
             </form>
@@ -410,26 +417,11 @@ export default function App() {
         </section>
       </main>
 
-      <footer className="footer">Projekt zaliczeniowy · Aplikacje internetowe · Etap 8</footer>
+      <footer className="footer">Projekt zaliczeniowy · Aplikacje internetowe · Etap 11</footer>
       <AuthModal mode={authMode} onClose={closeAuth} onSubmit={submitAuth} busy={authBusy} error={authError} notice={authNotice} />
-      {restaurantForm && currentUser && (
-        <AddRestaurantModal
-          cuisines={cuisines}
-          restaurant={restaurantForm.mode === "edit" ? restaurantForm.restaurant : null}
-          onClose={() => setRestaurantForm(null)}
-          onSaved={handleRestaurantSaved}
-        />
-      )}
-      {selectedRestaurantId && (
-        <RestaurantDetailsModal
-          restaurantId={selectedRestaurantId}
-          currentUser={currentUser}
-          onClose={() => setSelectedRestaurantId(null)}
-          onEditRestaurant={handleEditRestaurant}
-          onRestaurantChanged={refreshRestaurants}
-          onRestaurantDeleted={handleRestaurantDeleted}
-        />
-      )}
+      {restaurantForm && currentUser && <AddRestaurantModal cuisines={cuisines} restaurant={restaurantForm.mode === "edit" ? restaurantForm.restaurant : null} onClose={() => setRestaurantForm(null)} onSaved={handleRestaurantSaved} />}
+      {selectedRestaurantId && <RestaurantDetailsModal restaurantId={selectedRestaurantId} currentUser={currentUser} onClose={() => setSelectedRestaurantId(null)} onEditRestaurant={handleEditRestaurant} onRestaurantChanged={refreshRestaurants} onRestaurantDeleted={handleRestaurantDeleted} />}
+      {isCommentSearchOpen && currentUser && <CommentSearchModal onClose={() => setCommentSearchOpen(false)} onOpenRestaurant={openRestaurantFromCommentSearch} />}
     </div>
   );
 }
