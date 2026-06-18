@@ -111,6 +111,23 @@
   border-color: #277352;
 }
 
+.auth-form input.input-invalid {
+  border-color: #bd3e35;
+  background: #fffafa;
+}
+
+.auth-form input.input-invalid:focus {
+  outline-color: rgb(189 62 53 / 0.18);
+  border-color: #bd3e35;
+}
+
+.field-validation-message {
+  color: #a1322b;
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
 .auth-form button:disabled {
   cursor: wait;
   opacity: 0.72;
