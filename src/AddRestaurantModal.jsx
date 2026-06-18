@@ -8,19 +8,20 @@ function getCookie(name) {
     ?.slice(prefix.length);
 }
 
-export default function AddRestaurantModal({ cuisines, onClose, onCreated }) {
+export default function AddRestaurantModal({ cuisines, restaurant = null, onClose, onSaved }) {
+  const isEditing = Boolean(restaurant);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState("");
+  const [previewUrl, setPreviewUrl] = useState(restaurant?.photo_url || "");
 
   useEffect(() => () => {
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    if (previewUrl.startsWith("blob:")) URL.revokeObjectURL(previewUrl);
   }, [previewUrl]);
 
   const handlePhotoChange = (event) => {
     const file = event.target.files?.[0];
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
-    setPreviewUrl(file ? URL.createObjectURL(file) : "");
+    if (previewUrl.startsWith("blob:")) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(file ? URL.createObjectURL(file) : restaurant?.photo_url || "");
   };
 
   const handleSubmit = async (event) => {
@@ -40,19 +41,24 @@ export default function AddRestaurantModal({ cuisines, onClose, onCreated }) {
 
     try {
       const csrfToken = getCookie("csrftoken");
-      const response = await fetch("/api/restaurants", {
-        method: "POST",
-        credentials: "same-origin",
-        headers: csrfToken ? { "X-CSRFToken": csrfToken } : {},
-        body: formData,
-      });
+      const response = await fetch(
+        isEditing ? `/api/restaurants/${restaurant.id}/edit` : "/api/restaurants",
+        {
+          method: "POST",
+          credentials: "same-origin",
+          headers: csrfToken ? { "X-CSRFToken": csrfToken } : {},
+          body: formData,
+        },
+      );
       const payload = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(payload.detail || "Nie udało się dodać restauracji.");
+        throw new Error(
+          payload.detail || (isEditing ? "Nie udało się edytować restauracji." : "Nie udało się dodać restauracji."),
+        );
       }
 
-      onCreated(payload.restaurant);
+      onSaved(payload.restaurant);
     } catch (requestError) {
       setError(requestError.message);
     } finally {
@@ -66,35 +72,72 @@ export default function AddRestaurantModal({ cuisines, onClose, onCreated }) {
         <button className="modal-close" type="button" onClick={onClose} aria-label="Zamknij formularz">
           ×
         </button>
-        <p className="eyebrow">Nowa restauracja</p>
-        <h2 id="restaurant-title">Dodaj restaurację</h2>
+        <p className="eyebrow">{isEditing ? "Twoja restauracja" : "Nowa restauracja"}</p>
+        <h2 id="restaurant-title">{isEditing ? "Edytuj restaurację" : "Dodaj restaurację"}</h2>
         <p className="form-hint">Pola oznaczone gwiazdką są wymagane.</p>
 
         <form className="restaurant-form" onSubmit={handleSubmit}>
           <label>
             Nazwa restauracji *
-            <input name="name" minLength="2" maxLength="150" required placeholder="np. Bistro Zielony Talerz" />
+            <input
+              name="name"
+              minLength="2"
+              maxLength="150"
+              required
+              defaultValue={restaurant?.name || ""}
+              placeholder="np. Bistro Zielony Talerz"
+            />
           </label>
 
           <label>
             Adres *
-            <input name="address" maxLength="255" required placeholder="ul. Przykładowa 12, Poznań" />
+            <input
+              name="address"
+              maxLength="255"
+              required
+              defaultValue={restaurant?.address || ""}
+              placeholder="ul. Przykładowa 12, Poznań"
+            />
           </label>
 
           <div className="coordinates-row">
             <label>
               Szerokość geograficzna *
-              <input name="latitude" type="number" step="0.000001" min="-90" max="90" required placeholder="52.406374" />
+              <input
+                name="latitude"
+                type="number"
+                step="0.000001"
+                min="-90"
+                max="90"
+                required
+                defaultValue={restaurant?.latitude ?? ""}
+                placeholder="52.406374"
+              />
             </label>
             <label>
               Długość geograficzna *
-              <input name="longitude" type="number" step="0.000001" min="-180" max="180" required placeholder="16.925168" />
+              <input
+                name="longitude"
+                type="number"
+                step="0.000001"
+                min="-180"
+                max="180"
+                required
+                defaultValue={restaurant?.longitude ?? ""}
+                placeholder="16.925168"
+              />
             </label>
           </div>
 
           <label>
             Krótki opis
-            <textarea name="description" maxLength="1000" rows="3" placeholder="Co wyróżnia to miejsce?" />
+            <textarea
+              name="description"
+              maxLength="1000"
+              rows="3"
+              defaultValue={restaurant?.description || ""}
+              placeholder="Co wyróżnia to miejsce?"
+            />
           </label>
 
           <fieldset className="cuisine-selection">
@@ -102,7 +145,12 @@ export default function AddRestaurantModal({ cuisines, onClose, onCreated }) {
             <div className="cuisine-options">
               {cuisines.map((cuisine) => (
                 <label className="cuisine-option" key={cuisine}>
-                  <input name="cuisine" type="checkbox" value={cuisine} />
+                  <input
+                    name="cuisine"
+                    type="checkbox"
+                    value={cuisine}
+                    defaultChecked={restaurant?.cuisines?.includes(cuisine)}
+                  />
                   <span>{cuisine}</span>
                 </label>
               ))}
@@ -110,12 +158,18 @@ export default function AddRestaurantModal({ cuisines, onClose, onCreated }) {
           </fieldset>
 
           <label>
-            Zdjęcie restauracji *
-            <input name="photo" type="file" accept="image/png,image/jpeg,image/webp" required onChange={handlePhotoChange} />
+            {isEditing ? "Zmień zdjęcie (opcjonalnie)" : "Zdjęcie restauracji *"}
+            <input
+              name="photo"
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              required={!isEditing}
+              onChange={handlePhotoChange}
+            />
           </label>
           <p className="form-hint">Akceptowane formaty: JPG, PNG, WebP. Maksymalny rozmiar: 5 MB.</p>
 
-          {previewUrl && <img className="photo-preview" src={previewUrl} alt="Podgląd wybranego zdjęcia" />}
+          {previewUrl && <img className="photo-preview" src={previewUrl} alt="Podgląd zdjęcia restauracji" />}
 
           {error && <p className="form-message form-error">{error}</p>}
 
@@ -124,7 +178,7 @@ export default function AddRestaurantModal({ cuisines, onClose, onCreated }) {
               Anuluj
             </button>
             <button className="primary-button" type="submit" disabled={busy || cuisines.length === 0}>
-              {busy ? "Dodawanie…" : "Dodaj restaurację"}
+              {busy ? "Zapisywanie…" : isEditing ? "Zapisz zmiany" : "Dodaj restaurację"}
             </button>
           </div>
         </form>
