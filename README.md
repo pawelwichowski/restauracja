@@ -2,12 +2,12 @@
 
 Projekt zaliczeniowy z przedmiotu **Aplikacje internetowe**.
 
-## Etap 2
+## Etap 3
 
-Aplikacja ma frontend React i backend Django. Lista restauracji jest pobierana z API Django, które korzysta z MySQL przez Django ORM.
+Aplikacja ma frontend React i backend Django. Lista restauracji jest pobierana z API Django, które korzysta z MySQL przez Django ORM. Gość może też wyświetlić restauracje w pobliżu symulowanej pozycji użytkownika.
 
 ```text
-React + Vite  ->  /api/restaurants  ->  Django ORM  ->  MySQL
+React + Vite  ->  Django API  ->  Django ORM / obliczenie odległości  ->  MySQL
 ```
 
 ### Zaimplementowane funkcje
@@ -15,8 +15,15 @@ React + Vite  ->  /api/restaurants  ->  Django ORM  ->  MySQL
 - przechowywanie restauracji oraz rodzajów kuchni w MySQL,
 - relacja wiele-do-wielu: restauracja — rodzaj kuchni,
 - endpoint `GET /api/restaurants`,
+- endpoint `GET /api/restaurants/nearby`,
 - filtrowanie po nazwie, kuchni i minimalnej ocenie po stronie backendu,
-- sortowanie po nazwie lub średniej ocenie,
+- filtrowanie restauracji w promieniu od symulowanej lokalizacji użytkownika,
+- trzy symulowane lokalizacje w Poznaniu: Stary Rynek, Dworzec Główny i Rynek Jeżycki,
+- wybór promienia od 500 m do 5 km,
+- obliczanie odległości przez MySQL według wzoru Haversine'a,
+- zwracanie i prezentowanie odległości restauracji w kilometrach lub metrach,
+- łączenie filtra odległości z nazwą, kuchnią i minimalną oceną,
+- sortowanie po nazwie, ocenie lub odległości,
 - dane startowe ładowane komendą Django,
 - panel Django Admin do podglądu i edycji rekordów,
 - proxy Vite, dzięki któremu React komunikuje się z Django lokalnie bez dodatkowej konfiguracji CORS.
@@ -52,7 +59,7 @@ Otwórz `backend/.env` i ustaw rzeczywiste dane logowania, na przykład:
 
 ```env
 MYSQL_DATABASE=restauracje_db
-MYSQL_USER=root
+MYSQL_USER=restauracja_app
 MYSQL_PASSWORD=twoje_lokalne_haslo
 MYSQL_HOST=127.0.0.1
 MYSQL_PORT=3306
@@ -81,6 +88,8 @@ Otwórz adres pokazany przez Vite, zazwyczaj `http://localhost:5173`.
 
 ## API
 
+### Pełna lista restauracji
+
 ```text
 GET /api/restaurants
 ```
@@ -94,11 +103,36 @@ min_rating=4.5
 sort=rating-desc | rating-asc | name-asc
 ```
 
-Przykład:
+### Restauracje w pobliżu
 
 ```text
-http://127.0.0.1:8000/api/restaurants?cuisine=Polska&min_rating=4&sort=name-asc
+GET /api/restaurants/nearby
 ```
+
+Dla tego endpointu wymagane są parametry lokalizacji:
+
+```text
+latitude=52.408431
+longitude=16.934216
+radius_km=2
+```
+
+Możesz dodatkowo łączyć je z istniejącymi filtrami i sortowaniem:
+
+```text
+name=ramen
+cuisine=Japońska
+min_rating=4
+sort=distance-asc
+```
+
+Przykład — restauracje do 2 km od Starego Rynku:
+
+```text
+http://127.0.0.1:8000/api/restaurants/nearby?latitude=52.408431&longitude=16.934216&radius_km=2&sort=distance-asc
+```
+
+Odpowiedź zawiera dodatkowo pole `distance_km` dla każdej znalezionej restauracji.
 
 ## Panel administracyjny Django
 
@@ -119,5 +153,4 @@ wejdź na `http://127.0.0.1:8000/admin/`. Możesz tam przeglądać, dodawać i e
 - model opinii użytkownika z ograniczeniem jednej oceny na restaurację,
 - zdjęcia restauracji,
 - szczegóły restauracji i komentarze,
-- wyszukiwanie pełnotekstowe komentarzy,
-- filtrowanie według odległości.
+- wyszukiwanie pełnotekstowe komentarzy.
