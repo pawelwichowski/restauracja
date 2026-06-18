@@ -1,0 +1,166 @@
+.page-notice {
+  position: fixed;
+  z-index: 8;
+  top: 1rem;
+  left: 50%;
+  width: min(calc(100% - 2rem), 520px);
+  margin: 0;
+  transform: translateX(-50%);
+  border: 1px solid #a8cfb2;
+  border-radius: 0.75rem;
+  background: #e8f5ec;
+  box-shadow: 0 8px 24px rgb(27 71 45 / 0.16);
+  color: #1e6a45;
+  padding: 0.8rem 1rem;
+  font-size: 0.92rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.restaurant-modal {
+  position: relative;
+  width: min(100%, 680px);
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+  border-radius: 1.1rem;
+  background: #fff;
+  box-shadow: 0 24px 70px rgb(0 0 0 / 0.28);
+  padding: 2rem;
+}
+
+.restaurant-modal h2 {
+  margin: 0 0 0.4rem;
+  color: #193427;
+  font-size: 1.7rem;
+}
+
+.restaurant-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1.35rem;
+}
+
+.restaurant-form label,
+.restaurant-form fieldset {
+  color: #34433a;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.restaurant-form > label,
+.coordinates-row label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.restaurant-form input,
+.restaurant-form textarea {
+  width: 100%;
+  border: 1px solid #cfd8d0;
+  border-radius: 0.65rem;
+  background: #fff;
+  color: #1f2933;
+  padding: 0.7rem 0.75rem;
+}
+
+.restaurant-form textarea {
+  resize: vertical;
+}
+
+.restaurant-form input:focus,
+.restaurant-form textarea:focus {
+  outline: 3px solid rgb(61 138 99 / 0.2);
+  border-color: #277352;
+}
+
+.coordinates-row {
+  display: flex;
+  gap: 1rem;
+}
+
+.coordinates-row label {
+  flex: 1;
+}
+
+.cuisine-selection {
+  margin: 0;
+  border: 1px solid #dce6dd;
+  border-radius: 0.8rem;
+  padding: 0.9rem;
+}
+
+.cuisine-selection legend {
+  padding: 0 0.3rem;
+}
+
+.cuisine-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 0.4rem;
+}
+
+.cuisine-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid #cfe0d2;
+  border-radius: 999px;
+  background: #f7fbf7;
+  padding: 0.4rem 0.65rem;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.cuisine-option input {
+  width: auto;
+  margin: 0;
+  accent-color: #277352;
+}
+
+.photo-preview {
+  width: 100%;
+  max-height: 220px;
+  border-radius: 0.8rem;
+  object-fit: cover;
+}
+
+.restaurant-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.restaurant-photo {
+  display: block;
+  width: 100%;
+  height: 170px;
+  border-bottom: 1px solid #edf0eb;
+  object-fit: cover;
+}
+
+.restaurant-photo-placeholder {
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #e4efe6, #f8f8f3);
+  color: #5e7163;
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+@media (max-width: 600px) {
+  .restaurant-modal {
+    padding: 1.5rem;
+  }
+
+  .coordinates-row,
+  .restaurant-form-actions {
+    flex-direction: column;
+  }
+
+  .restaurant-form-actions button {
+    width: 100%;
+  }
+}

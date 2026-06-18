@@ -2,61 +2,53 @@
 
 Projekt zaliczeniowy z przedmiotu **Aplikacje internetowe**.
 
-## Etap 6 — konta użytkowników i reset hasła
+## Etap 7 — dodawanie restauracji ze zdjęciem
 
-Aplikacja ma frontend React i backend Django. Lista restauracji jest pobierana z API Django, które korzysta z MySQL przez Django ORM. Gość może wyświetlić lokale w pobliżu symulowanej pozycji, a użytkownik może założyć konto, zalogować się oraz zresetować hasło.
+Aplikacja składa się z Reacta, Django i MySQL. Gość może przeglądać restauracje i miejsca w pobliżu symulowanej lokalizacji. Zalogowany użytkownik może dodać nową restaurację wraz z adresem, pozycją geograficzną, rodzajami kuchni oraz zdjęciem.
 
 ```text
-React + Vite  ->  Django API  ->  Django ORM  ->  MySQL
-                           |
-                           +-> console.EmailBackend (terminal podczas developmentu)
+React + Vite -> Django API / Django ORM -> MySQL
+                    |
+                    +-> backend/media/restaurants/ (lokalne zdjęcia w trybie DEBUG)
 ```
 
 ### Zaimplementowane funkcje
 
-- przechowywanie restauracji oraz rodzajów kuchni w MySQL,
-- relacja wiele-do-wielu: restauracja — rodzaj kuchni,
-- filtrowanie po nazwie, kuchni, ocenie i odległości,
-- trzy symulowane lokalizacje w Poznaniu i promień od 500 m do 5 km,
-- obliczanie odległości przez MySQL według wzoru Haversine'a,
-- rejestracja użytkownika z nazwą, e-mailem i hasłem,
-- logowanie nazwą użytkownika albo e-mailem,
-- wylogowanie z sesji Django,
-- hasła przechowywane jako hashe przez Django,
-- walidacja haseł Django: długość, zbyt proste hasła i podobieństwo do danych użytkownika,
-- ochrona żądań modyfikujących przed CSRF,
-- reset hasła przez jednorazowy link oparty na tokenie Django,
-- w trybie lokalnym wiadomość resetująca jest wypisywana w terminalu backendu, bez faktycznej wysyłki e-maila,
-- panel Django Admin do podglądu danych.
-
-> Na tym etapie `average_rating` i `review_count` są zapisanymi danymi demonstracyjnymi. W etapie z opiniami zostaną zastąpione mechanizmem ocen wystawianych przez użytkowników.
+- lista restauracji z filtrowaniem po nazwie, kuchni, ocenie i odległości,
+- symulowane pozycje użytkownika w Poznaniu oraz promień wyszukiwania,
+- rejestracja, logowanie, wylogowanie oraz reset hasła przez link wypisywany w terminalu Django,
+- dodawanie restauracji tylko przez zalogowanego użytkownika,
+- zapis właściciela restauracji w bazie,
+- formularz nowej restauracji: nazwa, adres, szerokość i długość geograficzna, opis, rodzaje kuchni i zdjęcie,
+- wybór co najmniej jednego rodzaju kuchni,
+- upload JPG, PNG albo WebP do 5 MB,
+- walidacja, czy przesłany plik jest rzeczywistym obrazem,
+- lokalne przechowywanie zdjęć w `backend/media/restaurants/`,
+- prezentowanie zdjęć na kartach restauracji,
+- Django Admin z widocznym właścicielem restauracji.
 
 ## Wymagania
 
 - Node.js 20.19+ albo 22.12+,
 - Python 3.10+,
-- uruchomiony lokalnie MySQL 8+ lub MariaDB,
-- konto MySQL, którego używasz na laboratoriach.
+- MySQL 8+ albo MariaDB,
+- Pillow — instaluje się automatycznie z `backend/requirements.txt`.
 
-## Pierwsze uruchomienie
+## Uruchomienie po pobraniu etapu 7
 
-### 1. Utwórz bazę
-
-W MySQL Workbench, phpMyAdmin albo konsoli MySQL utwórz bazę o nazwie `restauracje_db` z kodowaniem `utf8mb4`. Do pliku `.env` wpiszesz później dane swojego lokalnego użytkownika MySQL.
-
-### 2. Uruchom backend
-
-W terminalu, w katalogu projektu:
+### Backend
 
 ```bash
 cd backend
-python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env
+python manage.py migrate
+python manage.py runserver
 ```
 
-Otwórz `backend/.env` i ustaw rzeczywiste dane logowania:
+Migracja `0002_restaurant_owner_photo` doda do tabeli restauracji właściciela i ścieżkę do pliku zdjęcia.
+
+Przykładowa konfiguracja `backend/.env`:
 
 ```env
 MYSQL_DATABASE=restauracje_db
@@ -67,82 +59,79 @@ MYSQL_PORT=3306
 FRONTEND_URL=http://localhost:5173
 ```
 
-Następnie wykonaj migracje, dodaj dane startowe i uruchom Django:
+### Frontend
 
-```bash
-python manage.py migrate
-python manage.py seed_restaurants
-python manage.py runserver
-```
-
-Backend będzie działał pod `http://127.0.0.1:8000`.
-
-### 3. Uruchom frontend
-
-W drugim terminalu, w katalogu głównym repozytorium:
+W drugim terminalu, w głównym katalogu projektu:
 
 ```bash
 npm install
 npm run dev
 ```
 
-Otwórz adres pokazany przez Vite, zazwyczaj `http://localhost:5173`.
+Vite przekazuje `/api` i `/media` do Django, dlatego zdjęcia dodane lokalnie będą wyświetlały się na stronie pod `http://localhost:5173`.
 
-## Test rejestracji i resetu hasła
+## Dodawanie restauracji
 
-1. Kliknij **Załóż konto** i zarejestruj użytkownika.
-2. Wyloguj się.
-3. Kliknij **Zaloguj się**, a następnie **Nie pamiętam hasła**.
-4. Wpisz e-mail konta i zatwierdź.
-5. Spójrz do terminala, w którym działa `python manage.py runserver`. Django wypisze wiadomość podobną do:
+1. Załóż konto albo zaloguj się.
+2. W nagłówku kliknij **Dodaj restaurację**.
+3. Wpisz nazwę i adres.
+4. Podaj współrzędne. Dla testu możesz użyć np. Starego Rynku:
 
 ```text
-Subject: Reset hasła — Smacznie
-To: twoj-email@example.com
-
-Otrzymaliśmy prośbę o zmianę hasła do konta Smacznie.
-
-Aby ustawić nowe hasło, otwórz jednorazowy link:
-http://localhost:5173/reset-hasla/<uid>/<token>
+Szerokość: 52.408431
+Długość: 16.934216
 ```
 
-6. Otwórz ten link w przeglądarce.
-7. Ustaw nowe hasło i zaloguj się nim.
+5. Zaznacz co najmniej jeden rodzaj kuchni.
+6. Wybierz zdjęcie JPG, PNG albo WebP o rozmiarze do 5 MB.
+7. Kliknij **Dodaj restaurację**.
 
-Link jest jednorazowy: po zmianie hasła token przestaje działać. Interfejs celowo pokazuje taki sam komunikat także dla nieistniejącego e-maila, aby nie zdradzać, które adresy mają konta.
+Po powodzeniu okno formularza zamknie się, na stronie pojawi się komunikat sukcesu, a lista restauracji odświeży się automatycznie.
 
 ## API
 
-### Restauracje
+### Pobieranie restauracji
 
 ```text
 GET /api/restaurants
 GET /api/restaurants/nearby
 ```
 
-Przykład restauracji do 2 km od Starego Rynku:
+### Tworzenie restauracji
 
 ```text
-http://127.0.0.1:8000/api/restaurants/nearby?latitude=52.408431&longitude=16.934216&radius_km=2&sort=distance-asc
+POST /api/restaurants
+Content-Type: multipart/form-data
 ```
 
-### Konta
+Wymagane pola formularza:
 
 ```text
-GET  /api/auth/csrf
-GET  /api/auth/me
-POST /api/auth/register
-POST /api/auth/login
-POST /api/auth/logout
-POST /api/auth/password-reset
-POST /api/auth/password-reset/confirm
+name
+address
+latitude
+longitude
+cuisine_names  # JSON, np. ["Polska", "Włoska"]
+photo
 ```
 
-Frontend korzysta z tych endpointów automatycznie. Endpointy POST wymagają tokenu CSRF, który React pobiera z `/api/auth/csrf`.
+Pole opcjonalne:
 
-## Panel administracyjny Django
+```text
+description
+```
 
-Po utworzeniu administratora:
+Endpoint wymaga zalogowanej sesji Django i tokenu CSRF. React obsługuje oba elementy automatycznie.
+
+## Reset hasła w wersji lokalnej
+
+Po wybraniu opcji **Nie pamiętam hasła**, Django nie wysyła prawdziwego e-maila. Pełna treść wiadomości z jednorazowym linkiem resetu pojawia się w terminalu uruchomionym przez:
+
+```bash
+python manage.py runserver
+```
+
+## Panel administracyjny
 
 ```bash
 cd backend
@@ -150,12 +139,11 @@ source .venv/bin/activate
 python manage.py createsuperuser
 ```
 
-wejdź na `http://127.0.0.1:8000/admin/`.
+Następnie otwórz `http://127.0.0.1:8000/admin/`.
 
-## Kolejny etap
+## Kolejne etapy
 
-- dodawanie restauracji przez zalogowanego użytkownika,
-- model opinii z ograniczeniem jednej oceny na użytkownika i restaurację,
-- zdjęcia restauracji,
-- szczegóły restauracji i komentarze,
-- pełnotekstowe wyszukiwanie komentarzy.
+- szczegół restauracji i lista komentarzy,
+- wystawianie jednej opinii przez użytkownika dla restauracji,
+- usuwanie własnej restauracji,
+- wyszukiwanie pełnotekstowe komentarzy.
