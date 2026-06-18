@@ -1,0 +1,388 @@
+:root {
+  color: #1f2933;
+  background: #f7f7f3;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.app-shell {
+  min-height: 100vh;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.25rem 1.5rem;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  color: #193427;
+  font-size: 1.25rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.brand-mark {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border-radius: 0.65rem;
+  background: #193427;
+  color: #fff;
+}
+
+.stage-label {
+  color: #5c6a63;
+  font-size: 0.9rem;
+}
+
+.hero {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 4.5rem 1.5rem 3.5rem;
+}
+
+.eyebrow {
+  margin: 0 0 0.5rem;
+  color: #277352;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.hero h1,
+.filters-panel h2,
+.results-heading h2,
+.empty-state h3 {
+  margin: 0;
+  color: #193427;
+}
+
+.hero h1 {
+  max-width: 720px;
+  font-size: clamp(2.4rem, 6vw, 4.5rem);
+  line-height: 1.02;
+  letter-spacing: -0.045em;
+}
+
+.hero > p:last-child {
+  max-width: 600px;
+  margin: 1.35rem 0 0;
+  color: #526058;
+  font-size: 1.08rem;
+  line-height: 1.65;
+}
+
+.content-layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem 4.5rem;
+}
+
+.filters-panel {
+  flex: 0 0 285px;
+  padding: 1.5rem;
+  border: 1px solid #e2e5de;
+  border-radius: 1.1rem;
+  background: #fff;
+  box-shadow: 0 10px 35px rgb(38 56 44 / 0.06);
+}
+
+.filters-panel h2 {
+  font-size: 1.35rem;
+  line-height: 1.2;
+}
+
+.filters-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.filters-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  color: #34433a;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.filters-form input,
+.filters-form select {
+  width: 100%;
+  border: 1px solid #cfd8d0;
+  border-radius: 0.65rem;
+  background: #fff;
+  color: #1f2933;
+  padding: 0.7rem 0.75rem;
+}
+
+.filters-form input:focus,
+.filters-form select:focus {
+  outline: 3px solid rgb(61 138 99 / 0.2);
+  border-color: #277352;
+}
+
+.results-section {
+  min-width: 0;
+  flex: 1;
+}
+
+.results-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.results-heading h2 {
+  font-size: 1.65rem;
+}
+
+.results-heading > p {
+  max-width: 360px;
+  margin: 0;
+  color: #637168;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  text-align: right;
+}
+
+.restaurant-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.restaurant-card {
+  display: flex;
+  flex: 1 1 300px;
+  flex-direction: column;
+  min-height: 280px;
+  overflow: hidden;
+  border: 1px solid #e2e5de;
+  border-radius: 1.1rem;
+  background: #fff;
+  box-shadow: 0 10px 35px rgb(38 56 44 / 0.06);
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.restaurant-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 40px rgb(38 56 44 / 0.12);
+}
+
+.card-topline,
+.rating-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+}
+
+.card-topline {
+  padding: 1.15rem 1.15rem 0;
+}
+
+.cuisine-badge {
+  border-radius: 999px;
+  background: #e5f1e8;
+  color: #1d6545;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.price-level {
+  color: #6d7a71;
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.card-content {
+  flex: 1;
+  padding: 1.15rem;
+}
+
+.card-content h3 {
+  margin: 0;
+  color: #193427;
+  font-size: 1.3rem;
+  letter-spacing: -0.025em;
+}
+
+.address {
+  margin: 0.5rem 0 0;
+  color: #5f6e64;
+  font-size: 0.9rem;
+}
+
+.description {
+  margin: 1rem 0 0;
+  color: #45534a;
+  font-size: 0.94rem;
+  line-height: 1.55;
+}
+
+.rating-row {
+  border-top: 1px solid #edf0eb;
+  padding: 1rem 1.15rem;
+}
+
+.rating-row > div {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+
+.star {
+  color: #dd9a1f;
+  font-size: 1.1rem;
+}
+
+.review-count {
+  color: #68766c;
+  font-size: 0.82rem;
+}
+
+.secondary-button,
+.primary-button,
+.details-button {
+  border-radius: 0.65rem;
+  padding: 0.7rem 0.85rem;
+  font-weight: 800;
+}
+
+.secondary-button {
+  border: 1px solid #b7c7bb;
+  background: #fff;
+  color: #245940;
+}
+
+.secondary-button:hover {
+  background: #eff6f1;
+}
+
+.details-button {
+  border: 0;
+  background: transparent;
+  color: #277352;
+  font-size: 0.88rem;
+}
+
+.details-button:hover {
+  text-decoration: underline;
+}
+
+.empty-state {
+  padding: 3rem 1.5rem;
+  border: 1px dashed #b9cbbb;
+  border-radius: 1rem;
+  background: #fbfdfb;
+  text-align: center;
+}
+
+.empty-state p {
+  color: #5f6e64;
+}
+
+.primary-button {
+  border: 0;
+  background: #193427;
+  color: #fff;
+}
+
+.primary-button:hover {
+  background: #277352;
+}
+
+.footer {
+  padding: 1.5rem;
+  border-top: 1px solid #e2e5de;
+  color: #67756b;
+  font-size: 0.86rem;
+  text-align: center;
+}
+
+@media (max-width: 860px) {
+  .content-layout {
+    flex-direction: column;
+  }
+
+  .filters-panel {
+    width: 100%;
+    flex-basis: auto;
+  }
+
+  .filters-form {
+    flex-flow: row wrap;
+  }
+
+  .filters-form label {
+    flex: 1 1 210px;
+  }
+
+  .filters-form .secondary-button {
+    align-self: end;
+  }
+}
+
+@media (max-width: 600px) {
+  .topbar,
+  .results-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .results-heading > p {
+    text-align: left;
+  }
+
+  .hero {
+    padding-top: 3rem;
+  }
+
+  .content-layout {
+    gap: 1.25rem;
+  }
+
+  .restaurant-card {
+    flex-basis: 100%;
+  }
+}
