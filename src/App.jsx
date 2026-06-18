@@ -1,13 +1,45 @@
 import { useEffect, useState } from "react";
 
+const SIMULATED_LOCATIONS = [
+  {
+    id: "none",
+    label: "Nie filtruj po lokalizacji",
+  },
+  {
+    id: "stary-rynek",
+    label: "Stary Rynek, Poznań",
+    latitude: 52.408431,
+    longitude: 16.934216,
+  },
+  {
+    id: "dworzec-glowny",
+    label: "Dworzec Główny, Poznań",
+    latitude: 52.402429,
+    longitude: 16.910797,
+  },
+  {
+    id: "rynek-jezycki",
+    label: "Rynek Jeżycki, Poznań",
+    latitude: 52.408255,
+    longitude: 16.898405,
+  },
+];
+
 const initialFilters = {
   name: "",
   cuisine: "Wszystkie",
   minimumRating: "0",
   sort: "rating-desc",
+  locationId: "none",
+  radiusKm: "2",
 };
 
 const formatRating = (rating) => Number(rating).toFixed(1).replace(".", ",");
+
+const formatDistance = (distance) => {
+  if (distance < 1) return `${Math.round(distance * 1000)} m stąd`;
+  return `${Number(distance).toFixed(2).replace(".", ",")} km stąd`;
+};
 
 const resultLabel = (count) => {
   if (count === 1) return "1 restauracja";
@@ -22,14 +54,26 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const selectedLocation = SIMULATED_LOCATIONS.find(
+    (location) => location.id === filters.locationId,
+  );
+  const isNearbySearch = selectedLocation?.latitude !== undefined;
+
   useEffect(() => {
     const controller = new AbortController();
-    const url = new URL("/api/restaurants", window.location.origin);
+    const endpoint = isNearbySearch ? "/api/restaurants/nearby" : "/api/restaurants";
+    const url = new URL(endpoint, window.location.origin);
 
     if (filters.name.trim()) url.searchParams.set("name", filters.name.trim());
     if (filters.cuisine !== "Wszystkie") url.searchParams.set("cuisine", filters.cuisine);
     url.searchParams.set("min_rating", filters.minimumRating);
     url.searchParams.set("sort", filters.sort);
+
+    if (isNearbySearch) {
+      url.searchParams.set("latitude", selectedLocation.latitude);
+      url.searchParams.set("longitude", selectedLocation.longitude);
+      url.searchParams.set("radius_km", filters.radiusKm);
+    }
 
     setLoading(true);
     setError("");
@@ -57,11 +101,26 @@ export default function App() {
       });
 
     return () => controller.abort();
-  }, [filters]);
+  }, [filters, isNearbySearch, selectedLocation]);
 
   const updateFilter = (event) => {
     const { name, value } = event.target;
-    setFilters((currentFilters) => ({ ...currentFilters, [name]: value }));
+
+    setFilters((currentFilters) => {
+      const nextFilters = { ...currentFilters, [name]: value };
+
+      if (name === "locationId") {
+        if (value === "none" && currentFilters.sort === "distance-asc") {
+          nextFilters.sort = "rating-desc";
+        }
+
+        if (value !== "none") {
+          nextFilters.sort = "distance-asc";
+        }
+      }
+
+      return nextFilters;
+    });
   };
 
   const resetFilters = () => setFilters(initialFilters);
@@ -74,7 +133,7 @@ export default function App() {
           <span className="brand-mark" aria-hidden="true">S</span>
           <span>Smacznie</span>
         </a>
-        <span className="stage-label">Etap 2 · Django i MySQL</span>
+        <span className="stage-label">Etap 3 · restauracje w pobliżu</span>
       </header>
 
       <main>
@@ -82,7 +141,8 @@ export default function App() {
           <p className="eyebrow">Portal z ocenami restauracji</p>
           <h1 id="page-title">Znajdź miejsce na dobry posiłek</h1>
           <p>
-            Restauracje, kuchnie i oceny są teraz pobierane z API Django oraz bazy MySQL.
+            Wybierz symulowaną lokalizację użytkownika, ustaw promień i zobacz lokale
+            znajdujące się w pobliżu.
           </p>
         </section>
 
@@ -116,6 +176,33 @@ export default function App() {
                 </select>
               </label>
 
+              <div className="location-filter">
+                <p>Symulowana lokalizacja użytkownika</p>
+                <label>
+                  Pozycja
+                  <select name="locationId" value={filters.locationId} onChange={updateFilter}>
+                    {SIMULATED_LOCATIONS.map((location) => (
+                      <option key={location.id} value={location.id}>
+                        {location.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                {isNearbySearch && (
+                  <label>
+                    Promień wyszukiwania
+                    <select name="radiusKm" value={filters.radiusKm} onChange={updateFilter}>
+                      <option value="0.5">500 m</option>
+                      <option value="1">1 km</option>
+                      <option value="2">2 km</option>
+                      <option value="3">3 km</option>
+                      <option value="5">5 km</option>
+                    </select>
+                  </label>
+                )}
+              </div>
+
               <label>
                 Minimalna ocena
                 <select
@@ -133,6 +220,9 @@ export default function App() {
               <label>
                 Sortowanie
                 <select name="sort" value={filters.sort} onChange={updateFilter}>
+                  <option value="distance-asc" disabled={!isNearbySearch}>
+                    Najbliżej
+                  </option>
                   <option value="rating-desc">Najwyższa ocena</option>
                   <option value="rating-asc">Najniższa ocena</option>
                   <option value="name-asc">Nazwa A–Z</option>
@@ -151,7 +241,11 @@ export default function App() {
                 <p className="eyebrow">Wyniki</p>
                 <h2>{resultLabel(restaurants.length)}</h2>
               </div>
-              <p>Filtry są wykonywane w bazie danych przez Django ORM.</p>
+              <p>
+                {isNearbySearch
+                  ? `Pozycja symulowana: ${selectedLocation.label}. Promień: ${filters.radiusKm} km.`
+                  : "Filtry są wykonywane w bazie danych przez Django ORM."}
+              </p>
             </div>
 
             {loading ? (
@@ -171,7 +265,11 @@ export default function App() {
                   <article className="restaurant-card" key={restaurant.id}>
                     <div className="card-topline">
                       <span className="cuisine-badge">{restaurant.cuisines.join(", ")}</span>
-                      <span className="price-level">Dane z MySQL</span>
+                      {restaurant.distance_km !== null ? (
+                        <span className="distance-label">{formatDistance(restaurant.distance_km)}</span>
+                      ) : (
+                        <span className="price-level">Dane z MySQL</span>
+                      )}
                     </div>
 
                     <div className="card-content">
@@ -207,7 +305,7 @@ export default function App() {
       </main>
 
       <footer className="footer">
-        Projekt zaliczeniowy · Aplikacje internetowe · Etap 2
+        Projekt zaliczeniowy · Aplikacje internetowe · Etap 3
       </footer>
     </div>
   );
