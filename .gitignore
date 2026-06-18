@@ -4,3 +4,7 @@ dist/
 .env
 .env.*
 !.env.example
+backend/.venv/
+backend/.env
+__pycache__/
+*.py[cod]
