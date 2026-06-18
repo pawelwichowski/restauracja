@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
@@ -21,6 +22,14 @@ class Restaurant(models.Model):
     description = models.TextField(blank=True)
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    photo = models.ImageField(upload_to="restaurants/", blank=True)
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        related_name="restaurants",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
     average_rating = models.DecimalField(
         max_digits=2,
         decimal_places=1,
