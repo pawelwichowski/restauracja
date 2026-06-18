@@ -1,5 +1,4 @@
-import { useMemo, useState } from "react";
-import { restaurants } from "./data/restaurants.js";
+import { useEffect, useState } from "react";
 
 const initialFilters = {
   name: "",
@@ -8,42 +7,56 @@ const initialFilters = {
   sort: "rating-desc",
 };
 
-const formatRating = (rating) => rating.toFixed(1).replace(".", ",");
+const formatRating = (rating) => Number(rating).toFixed(1).replace(".", ",");
+
+const resultLabel = (count) => {
+  if (count === 1) return "1 restauracja";
+  if (count >= 2 && count <= 4) return `${count} restauracje`;
+  return `${count} restauracji`;
+};
 
 export default function App() {
   const [filters, setFilters] = useState(initialFilters);
+  const [restaurants, setRestaurants] = useState([]);
+  const [cuisines, setCuisines] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const cuisines = useMemo(
-    () => ["Wszystkie", ...new Set(restaurants.map((restaurant) => restaurant.cuisine))],
-    [],
-  );
+  useEffect(() => {
+    const controller = new AbortController();
+    const url = new URL("/api/restaurants", window.location.origin);
 
-  const filteredRestaurants = useMemo(() => {
-    const normalizedName = filters.name.trim().toLocaleLowerCase("pl-PL");
-    const minimumRating = Number(filters.minimumRating);
+    if (filters.name.trim()) url.searchParams.set("name", filters.name.trim());
+    if (filters.cuisine !== "Wszystkie") url.searchParams.set("cuisine", filters.cuisine);
+    url.searchParams.set("min_rating", filters.minimumRating);
+    url.searchParams.set("sort", filters.sort);
 
-    return restaurants
-      .filter((restaurant) => {
-        const matchesName = restaurant.name
-          .toLocaleLowerCase("pl-PL")
-          .includes(normalizedName);
-        const matchesCuisine =
-          filters.cuisine === "Wszystkie" || restaurant.cuisine === filters.cuisine;
-        const matchesRating = restaurant.rating >= minimumRating;
+    setLoading(true);
+    setError("");
 
-        return matchesName && matchesCuisine && matchesRating;
+    fetch(url, { signal: controller.signal })
+      .then(async (response) => {
+        if (!response.ok) {
+          const payload = await response.json().catch(() => ({}));
+          throw new Error(payload.detail || "Nie udało się pobrać restauracji.");
+        }
+        return response.json();
       })
-      .sort((first, second) => {
-        if (filters.sort === "name-asc") {
-          return first.name.localeCompare(second.name, "pl-PL");
+      .then((payload) => {
+        setRestaurants(payload.results);
+        setCuisines(payload.available_cuisines);
+      })
+      .catch((requestError) => {
+        if (requestError.name !== "AbortError") {
+          setError(requestError.message);
+          setRestaurants([]);
         }
-
-        if (filters.sort === "rating-asc") {
-          return first.rating - second.rating || first.name.localeCompare(second.name, "pl-PL");
-        }
-
-        return second.rating - first.rating || first.name.localeCompare(second.name, "pl-PL");
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
       });
+
+    return () => controller.abort();
   }, [filters]);
 
   const updateFilter = (event) => {
@@ -52,6 +65,7 @@ export default function App() {
   };
 
   const resetFilters = () => setFilters(initialFilters);
+  const cuisineOptions = ["Wszystkie", ...cuisines];
 
   return (
     <div className="app-shell">
@@ -60,7 +74,7 @@ export default function App() {
           <span className="brand-mark" aria-hidden="true">S</span>
           <span>Smacznie</span>
         </a>
-        <span className="stage-label">Etap 1 · lista restauracji</span>
+        <span className="stage-label">Etap 2 · Django i MySQL</span>
       </header>
 
       <main>
@@ -68,8 +82,7 @@ export default function App() {
           <p className="eyebrow">Portal z ocenami restauracji</p>
           <h1 id="page-title">Znajdź miejsce na dobry posiłek</h1>
           <p>
-            Przeglądaj restauracje, sprawdzaj średnie oceny i zawężaj wyniki według
-            własnych kryteriów.
+            Restauracje, kuchnie i oceny są teraz pobierane z API Django oraz bazy MySQL.
           </p>
         </section>
 
@@ -95,7 +108,7 @@ export default function App() {
               <label>
                 Rodzaj kuchni
                 <select name="cuisine" value={filters.cuisine} onChange={updateFilter}>
-                  {cuisines.map((cuisine) => (
+                  {cuisineOptions.map((cuisine) => (
                     <option key={cuisine} value={cuisine}>
                       {cuisine}
                     </option>
@@ -136,24 +149,29 @@ export default function App() {
             <div className="results-heading">
               <div>
                 <p className="eyebrow">Wyniki</p>
-                <h2>
-                  {filteredRestaurants.length === 1
-                    ? "1 restauracja"
-                    : `${filteredRestaurants.length} restauracji`}
-                </h2>
+                <h2>{resultLabel(restaurants.length)}</h2>
               </div>
-              <p>Ocena będzie później liczona na podstawie opinii użytkowników.</p>
+              <p>Filtry są wykonywane w bazie danych przez Django ORM.</p>
             </div>
 
-            {filteredRestaurants.length > 0 ? (
+            {loading ? (
+              <div className="empty-state">
+                <h3>Wczytywanie restauracji…</h3>
+                <p>Łączenie z API Django.</p>
+              </div>
+            ) : error ? (
+              <div className="empty-state">
+                <h3>Nie można połączyć się z API</h3>
+                <p>{error}</p>
+                <p>Uruchom Django na porcie 8000 i sprawdź konfigurację MySQL.</p>
+              </div>
+            ) : restaurants.length > 0 ? (
               <div className="restaurant-grid">
-                {filteredRestaurants.map((restaurant) => (
+                {restaurants.map((restaurant) => (
                   <article className="restaurant-card" key={restaurant.id}>
                     <div className="card-topline">
-                      <span className="cuisine-badge">{restaurant.cuisine}</span>
-                      <span className="price-level" aria-label={`Poziom cen: ${restaurant.priceLevel}`}>
-                        {restaurant.priceLevel}
-                      </span>
+                      <span className="cuisine-badge">{restaurant.cuisines.join(", ")}</span>
+                      <span className="price-level">Dane z MySQL</span>
                     </div>
 
                     <div className="card-content">
@@ -165,8 +183,8 @@ export default function App() {
                     <footer className="rating-row">
                       <div>
                         <span className="star" aria-hidden="true">★</span>
-                        <strong>{formatRating(restaurant.rating)}</strong>
-                        <span className="review-count">({restaurant.reviewCount} opinii)</span>
+                        <strong>{formatRating(restaurant.average_rating)}</strong>
+                        <span className="review-count">({restaurant.review_count} opinii)</span>
                       </div>
                       <button className="details-button" type="button">
                         Szczegóły
@@ -189,7 +207,7 @@ export default function App() {
       </main>
 
       <footer className="footer">
-        Projekt zaliczeniowy · Aplikacje internetowe · Etap 1
+        Projekt zaliczeniowy · Aplikacje internetowe · Etap 2
       </footer>
     </div>
   );
