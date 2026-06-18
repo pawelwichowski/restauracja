@@ -1,14 +1,17 @@
+import json
 from decimal import Decimal, InvalidOperation
 
+from PIL import Image, UnidentifiedImageError
 from django.db.models import FloatField
 from django.db.models.expressions import RawSQL
 from django.http import JsonResponse
-from django.views.decorators.http import require_GET
+from django.views.decorators.http import require_GET, require_http_methods
 
 from .models import Cuisine, Restaurant
 
 EARTH_RADIUS_KM = 6371.0088
 MAX_RADIUS_KM = 50
+MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024
 
 SORTING = {
     "rating-desc": ("-average_rating", "name"),
@@ -67,6 +70,22 @@ def parse_location(request, location_required=False):
     radius = parse_float(request.GET.get("radius_km", 5), "radius_km", 0.1, MAX_RADIUS_KM)
 
     return {"latitude": latitude, "longitude": longitude, "radius_km": radius}
+
+
+def restaurant_payload(restaurant, distance_km=None):
+    return {
+        "id": restaurant.id,
+        "name": restaurant.name,
+        "address": restaurant.address,
+        "description": restaurant.description,
+        "latitude": float(restaurant.latitude) if restaurant.latitude is not None else None,
+        "longitude": float(restaurant.longitude) if restaurant.longitude is not None else None,
+        "photo_url": restaurant.photo.url if restaurant.photo else None,
+        "average_rating": float(restaurant.average_rating),
+        "review_count": restaurant.review_count,
+        "cuisines": [cuisine.name for cuisine in restaurant.cuisines.all()],
+        "distance_km": round(float(distance_km), 2) if distance_km is not None else None,
+    }
 
 
 def add_distance_annotation(queryset, latitude, longitude):
@@ -135,22 +154,10 @@ def build_restaurant_response(request, location_required=False):
     queryset = queryset.distinct()
 
     results = [
-        {
-            "id": restaurant.id,
-            "name": restaurant.name,
-            "address": restaurant.address,
-            "description": restaurant.description,
-            "latitude": float(restaurant.latitude) if restaurant.latitude is not None else None,
-            "longitude": float(restaurant.longitude) if restaurant.longitude is not None else None,
-            "average_rating": float(restaurant.average_rating),
-            "review_count": restaurant.review_count,
-            "cuisines": [cuisine.name for cuisine in restaurant.cuisines.all()],
-            "distance_km": (
-                round(float(restaurant.distance_km), 2)
-                if location is not None
-                else None
-            ),
-        }
+        restaurant_payload(
+            restaurant,
+            getattr(restaurant, "distance_km", None) if location is not None else None,
+        )
         for restaurant in queryset
     ]
 
@@ -164,8 +171,87 @@ def build_restaurant_response(request, location_required=False):
     )
 
 
-@require_GET
+def parse_cuisine_names(value):
+    try:
+        cuisine_names = json.loads(value)
+    except (TypeError, json.JSONDecodeError) as exc:
+        raise ValueError("Wybierz co najmniej jeden rodzaj kuchni.") from exc
+
+    if not isinstance(cuisine_names, list) or not cuisine_names:
+        raise ValueError("Wybierz co najmniej jeden rodzaj kuchni.")
+
+    cleaned_names = []
+    for name in cuisine_names:
+        if not isinstance(name, str) or not name.strip():
+            raise ValueError("Lista rodzajów kuchni jest nieprawidłowa.")
+        if name.strip() not in cleaned_names:
+            cleaned_names.append(name.strip())
+
+    cuisines = list(Cuisine.objects.filter(name__in=cleaned_names))
+    if len(cuisines) != len(cleaned_names):
+        raise ValueError("Wybrano nieistniejący rodzaj kuchni.")
+
+    return cuisines
+
+
+def validate_image(image):
+    if image is None:
+        raise ValueError("Dodaj zdjęcie restauracji.")
+
+    if image.size > MAX_IMAGE_SIZE_BYTES:
+        raise ValueError("Zdjęcie może mieć maksymalnie 5 MB.")
+
+    try:
+        opened_image = Image.open(image)
+        opened_image.verify()
+    except (UnidentifiedImageError, OSError, Image.DecompressionBombError) as exc:
+        raise ValueError("Wybrany plik nie jest prawidłowym obrazem.") from exc
+    finally:
+        image.seek(0)
+
+
+def create_restaurant(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({"detail": "Zaloguj się, aby dodać restaurację."}, status=401)
+
+    name = request.POST.get("name", "").strip()
+    address = request.POST.get("address", "").strip()
+    description = request.POST.get("description", "").strip()
+
+    if len(name) < 2:
+        return JsonResponse({"detail": "Nazwa restauracji musi mieć co najmniej 2 znaki."}, status=400)
+    if len(name) > 150:
+        return JsonResponse({"detail": "Nazwa restauracji jest zbyt długa."}, status=400)
+    if not address:
+        return JsonResponse({"detail": "Podaj adres restauracji."}, status=400)
+
+    try:
+        latitude = parse_float(request.POST.get("latitude"), "latitude", -90, 90)
+        longitude = parse_float(request.POST.get("longitude"), "longitude", -180, 180)
+        cuisines = parse_cuisine_names(request.POST.get("cuisine_names"))
+        photo = request.FILES.get("photo")
+        validate_image(photo)
+    except ValueError as exc:
+        return JsonResponse({"detail": str(exc)}, status=400)
+
+    restaurant = Restaurant.objects.create(
+        name=name,
+        address=address,
+        description=description,
+        latitude=Decimal(str(latitude)),
+        longitude=Decimal(str(longitude)),
+        photo=photo,
+        owner=request.user,
+    )
+    restaurant.cuisines.set(cuisines)
+
+    return JsonResponse({"restaurant": restaurant_payload(restaurant)}, status=201)
+
+
+@require_http_methods(["GET", "POST"])
 def restaurant_list(request):
+    if request.method == "POST":
+        return create_restaurant(request)
     return build_restaurant_response(request)
 
 
