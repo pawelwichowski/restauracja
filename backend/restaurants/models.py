@@ -35,7 +35,7 @@ class Restaurant(models.Model):
         ordering = ["name"]
         constraints = [
             models.CheckConstraint(
-                condition=models.Q(average_rating__gte=0)
+                check=models.Q(average_rating__gte=0)
                 & models.Q(average_rating__lte=5),
                 name="restaurant_average_rating_range",
             )
