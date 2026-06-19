@@ -9,6 +9,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_GET, require_http_methods
 
 from .models import Cuisine, Restaurant
+from .restaurant_name_validation import validate_restaurant_name
 
 EARTH_RADIUS_KM = 6371.0088
 MAX_RADIUS_KM = 50
@@ -217,18 +218,14 @@ def create_restaurant(request):
     if not request.user.is_authenticated:
         return JsonResponse({"detail": "Zaloguj się, aby dodać restaurację."}, status=401)
 
-    name = request.POST.get("name", "").strip()
     address = request.POST.get("address", "").strip()
     description = request.POST.get("description", "").strip()
 
-    if len(name) < 2:
-        return JsonResponse({"detail": "Nazwa restauracji musi mieć co najmniej 2 znaki."}, status=400)
-    if len(name) > 150:
-        return JsonResponse({"detail": "Nazwa restauracji jest zbyt długa."}, status=400)
     if not address:
         return JsonResponse({"detail": "Podaj adres restauracji."}, status=400)
 
     try:
+        name = validate_restaurant_name(request.POST.get("name", ""))
         latitude = parse_float(request.POST.get("latitude"), "latitude", -90, 90)
         longitude = parse_float(request.POST.get("longitude"), "longitude", -180, 180)
         cuisines = parse_cuisine_names(request.POST.get("cuisine_names"))

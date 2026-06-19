@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import AddressSearch from "./AddressSearch.jsx";
 
 function getCookie(name) {
   const prefix = `${name}=`;
@@ -24,10 +25,14 @@ export default function AddRestaurantModal({ cuisines, restaurant = null, onClos
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(restaurant?.photo_url || "");
+  const [restaurantName, setRestaurantName] = useState(restaurant?.name || "");
+  const [nameCheck, setNameCheck] = useState({
+    checking: false,
+    available: null,
+    message: "",
+  });
   const [address, setAddress] = useState(restaurant?.address || "");
   const [selectedLocation, setSelectedLocation] = useState(() => initialLocation(restaurant));
-  const [addressResults, setAddressResults] = useState([]);
-  const [addressBusy, setAddressBusy] = useState(false);
   const [photoRequired, setPhotoRequired] = useState(false);
 
   useEffect(() => () => {
@@ -41,53 +46,72 @@ export default function AddRestaurantModal({ cuisines, restaurant = null, onClos
       .catch(() => setPhotoRequired(false));
   }, []);
 
+  useEffect(() => {
+    const normalizedName = restaurantName.trim();
+    if (normalizedName.length < 2) {
+      setNameCheck({ checking: false, available: null, message: "" });
+      return undefined;
+    }
+
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(async () => {
+      setNameCheck({ checking: true, available: null, message: "" });
+      try {
+        const url = new URL("/api/restaurants/name-availability", window.location.origin);
+        url.searchParams.set("name", normalizedName);
+        if (restaurant?.id) url.searchParams.set("exclude_id", restaurant.id);
+
+        const response = await fetch(url, {
+          credentials: "same-origin",
+          signal: controller.signal,
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(payload.detail || "Nie udało się sprawdzić nazwy restauracji.");
+        }
+        if (!controller.signal.aborted) {
+          setNameCheck({
+            checking: false,
+            available: payload.available,
+            message: payload.detail || "",
+          });
+        }
+      } catch (requestError) {
+        if (requestError.name !== "AbortError" && !controller.signal.aborted) {
+          setNameCheck({
+            checking: false,
+            available: null,
+            message: "Nie udało się sprawdzić nazwy. Zostanie zweryfikowana przy zapisie.",
+          });
+        }
+      }
+    }, 450);
+
+    return () => {
+      controller.abort();
+      window.clearTimeout(timeoutId);
+    };
+  }, [restaurantName, restaurant?.id]);
+
   const handlePhotoChange = (event) => {
     const file = event.target.files?.[0];
     if (previewUrl.startsWith("blob:")) URL.revokeObjectURL(previewUrl);
     setPreviewUrl(file ? URL.createObjectURL(file) : restaurant?.photo_url || "");
   };
 
-  const handleAddressChange = (event) => {
-    setAddress(event.target.value);
-    setSelectedLocation(null);
-    setAddressResults([]);
+  const handleNameChange = (event) => {
+    setRestaurantName(event.target.value);
+    setError("");
   };
 
-  const searchAddress = async () => {
-    const query = address.trim();
-    if (query.length < 3) {
-      setError("Wpisz adres zawierający co najmniej 3 znaki.");
-      return;
-    }
-
-    setAddressBusy(true);
-    setError("");
-    setAddressResults([]);
-
-    try {
-      const response = await fetch(`/api/geocode/address?q=${encodeURIComponent(query)}`, {
-        credentials: "same-origin",
-      });
-      const payload = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        throw new Error(payload.detail || "Nie udało się wyszukać adresu.");
-      }
-      setAddressResults(payload.results);
-      if (!payload.results.length) {
-        setError("Nie znaleziono pasującego adresu. Doprecyzuj nazwę ulicy lub miasto.");
-      }
-    } catch (requestError) {
-      setError(requestError.message);
-    } finally {
-      setAddressBusy(false);
-    }
+  const handleAddressChange = (value) => {
+    setAddress(value);
+    setSelectedLocation(null);
   };
 
   const chooseLocation = (location) => {
     setAddress(location.display_name);
     setSelectedLocation(location);
-    setAddressResults([]);
-    setError("");
   };
 
   const handleSubmit = async (event) => {
@@ -95,6 +119,14 @@ export default function AddRestaurantModal({ cuisines, restaurant = null, onClos
     const formData = new FormData(event.currentTarget);
     const selectedCuisines = formData.getAll("cuisine");
 
+    if (nameCheck.checking) {
+      setError("Poczekaj na sprawdzenie nazwy restauracji.");
+      return;
+    }
+    if (nameCheck.available === false) {
+      setError(nameCheck.message || "Restauracja o tej nazwie już istnieje.");
+      return;
+    }
     if (!selectedCuisines.length) {
       setError("Wybierz co najmniej jeden rodzaj kuchni.");
       return;
@@ -105,6 +137,7 @@ export default function AddRestaurantModal({ cuisines, restaurant = null, onClos
     }
 
     formData.delete("cuisine");
+    formData.set("name", restaurantName.trim());
     formData.set("cuisine_names", JSON.stringify(selectedCuisines));
     formData.set("address", address);
     formData.set("latitude", String(selectedLocation.latitude));
@@ -157,51 +190,32 @@ export default function AddRestaurantModal({ cuisines, restaurant = null, onClos
               minLength="2"
               maxLength="150"
               required
-              defaultValue={restaurant?.name || ""}
+              value={restaurantName}
+              onChange={handleNameChange}
               placeholder="np. Bistro Zielony Talerz"
+              aria-describedby="restaurant-name-status"
             />
           </label>
-
-          <div className="address-search-field">
-            <label>
-              Adres lokalu *
-              <input
-                name="address"
-                maxLength="255"
-                required
-                value={address}
-                onChange={handleAddressChange}
-                placeholder="np. Stary Rynek 1, Poznań"
-              />
-            </label>
-            <button className="secondary-button" type="button" onClick={searchAddress} disabled={addressBusy}>
-              {addressBusy ? "Wyszukiwanie…" : "Znajdź adres"}
-            </button>
-          </div>
-
-          {addressResults.length > 0 && (
-            <div className="address-results" role="listbox" aria-label="Wyniki wyszukiwania adresu">
-              {addressResults.map((location) => (
-                <button
-                  className="address-result"
-                  type="button"
-                  key={`${location.osm_type}-${location.osm_id}`}
-                  onClick={() => chooseLocation(location)}
-                >
-                  {location.display_name}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {selectedLocation && (
-            <p className="selected-location" role="status">
-              Lokalizacja wybrana: {selectedLocation.display_name}
-            </p>
-          )}
-          <p className="geocoding-attribution">
-            Wyszukiwanie adresów: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">© OpenStreetMap contributors</a>
+          <p
+            id="restaurant-name-status"
+            className={`restaurant-name-status ${nameCheck.available === true ? "is-available" : ""} ${nameCheck.available === false ? "is-unavailable" : ""}`.trim()}
+            aria-live="polite"
+          >
+            {nameCheck.checking && "Sprawdzanie nazwy…"}
+            {!nameCheck.checking && nameCheck.message}
           </p>
+
+          <AddressSearch
+            label="Adres lokalu"
+            inputName="address"
+            query={address}
+            onQueryChange={handleAddressChange}
+            selectedLocation={selectedLocation}
+            onSelectLocation={chooseLocation}
+            onSelectionCleared={() => setSelectedLocation(null)}
+            placeholder="np. Stary Rynek 1, Poznań"
+            required
+          />
 
           <label>
             Krótki opis
@@ -255,7 +269,11 @@ export default function AddRestaurantModal({ cuisines, restaurant = null, onClos
             <button className="secondary-button" type="button" onClick={onClose} disabled={busy}>
               Anuluj
             </button>
-            <button className="primary-button" type="submit" disabled={busy || cuisines.length === 0}>
+            <button
+              className="primary-button"
+              type="submit"
+              disabled={busy || cuisines.length === 0 || nameCheck.checking || nameCheck.available === false}
+            >
               {busy ? "Zapisywanie…" : isEditing ? "Zapisz zmiany" : "Dodaj restaurację"}
             </button>
           </div>

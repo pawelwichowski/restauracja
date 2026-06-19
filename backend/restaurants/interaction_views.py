@@ -8,6 +8,7 @@ from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_GET, require_http_methods
 
 from .models import Restaurant, Review
+from .restaurant_name_validation import validate_restaurant_name
 from .views import parse_cuisine_names, parse_float, restaurant_payload, validate_image
 
 
@@ -228,7 +229,15 @@ def update_restaurant(request, restaurant_id):
         if restaurant.owner_id != request.user.id:
             return JsonResponse({"detail": "Możesz edytować tylko własną restaurację."}, status=403)
 
-        restaurant.name = values["name"]
+        try:
+            name = validate_restaurant_name(
+                values["name"],
+                exclude_restaurant_id=restaurant.id,
+            )
+        except ValueError as error:
+            return JsonResponse({"detail": str(error)}, status=400)
+
+        restaurant.name = name
         restaurant.address = values["address"]
         restaurant.description = values["description"]
         restaurant.latitude = values["latitude"]
