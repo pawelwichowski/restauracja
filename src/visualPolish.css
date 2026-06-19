@@ -1,10 +1,8 @@
-/* Oczyszczenie sekcji startowej: tytuł i znak graficzny wystarczą. */
 .hero .eyebrow,
 .hero > p:last-child {
   display: none;
 }
 
-/* Zwarty, poziomy nagłówek: plakietka po lewej i mniejszy tytuł po prawej. */
 .hero {
   display: flex;
   align-items: center;
@@ -32,7 +30,6 @@
   margin-top: 0.55rem;
 }
 
-/* Przycisk istnieje w RestaurantDetailsModal, ale musi być nad zdjęciem. */
 .details-modal .modal-close {
   z-index: 3;
 }
