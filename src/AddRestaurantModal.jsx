@@ -8,20 +8,86 @@ function getCookie(name) {
     ?.slice(prefix.length);
 }
 
+function initialLocation(restaurant) {
+  if (restaurant?.latitude === null || restaurant?.latitude === undefined) return null;
+  if (restaurant?.longitude === null || restaurant?.longitude === undefined) return null;
+
+  return {
+    display_name: restaurant.address,
+    latitude: restaurant.latitude,
+    longitude: restaurant.longitude,
+  };
+}
+
 export default function AddRestaurantModal({ cuisines, restaurant = null, onClose, onSaved }) {
   const isEditing = Boolean(restaurant);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(restaurant?.photo_url || "");
+  const [address, setAddress] = useState(restaurant?.address || "");
+  const [selectedLocation, setSelectedLocation] = useState(() => initialLocation(restaurant));
+  const [addressResults, setAddressResults] = useState([]);
+  const [addressBusy, setAddressBusy] = useState(false);
+  const [photoRequired, setPhotoRequired] = useState(false);
 
   useEffect(() => () => {
     if (previewUrl.startsWith("blob:")) URL.revokeObjectURL(previewUrl);
   }, [previewUrl]);
 
+  useEffect(() => {
+    fetch("/api/app-config", { credentials: "same-origin" })
+      .then((response) => response.json())
+      .then((config) => setPhotoRequired(Boolean(config.restaurant_photo_required)))
+      .catch(() => setPhotoRequired(false));
+  }, []);
+
   const handlePhotoChange = (event) => {
     const file = event.target.files?.[0];
     if (previewUrl.startsWith("blob:")) URL.revokeObjectURL(previewUrl);
     setPreviewUrl(file ? URL.createObjectURL(file) : restaurant?.photo_url || "");
+  };
+
+  const handleAddressChange = (event) => {
+    setAddress(event.target.value);
+    setSelectedLocation(null);
+    setAddressResults([]);
+  };
+
+  const searchAddress = async () => {
+    const query = address.trim();
+    if (query.length < 3) {
+      setError("Wpisz adres zawierający co najmniej 3 znaki.");
+      return;
+    }
+
+    setAddressBusy(true);
+    setError("");
+    setAddressResults([]);
+
+    try {
+      const response = await fetch(`/api/geocode/address?q=${encodeURIComponent(query)}`, {
+        credentials: "same-origin",
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload.detail || "Nie udało się wyszukać adresu.");
+      }
+      setAddressResults(payload.results);
+      if (!payload.results.length) {
+        setError("Nie znaleziono pasującego adresu. Doprecyzuj nazwę ulicy lub miasto.");
+      }
+    } catch (requestError) {
+      setError(requestError.message);
+    } finally {
+      setAddressBusy(false);
+    }
+  };
+
+  const chooseLocation = (location) => {
+    setAddress(location.display_name);
+    setSelectedLocation(location);
+    setAddressResults([]);
+    setError("");
   };
 
   const handleSubmit = async (event) => {
@@ -33,9 +99,16 @@ export default function AddRestaurantModal({ cuisines, restaurant = null, onClos
       setError("Wybierz co najmniej jeden rodzaj kuchni.");
       return;
     }
+    if (!selectedLocation) {
+      setError("Wyszukaj adres i wybierz właściwą lokalizację z listy.");
+      return;
+    }
 
     formData.delete("cuisine");
     formData.set("cuisine_names", JSON.stringify(selectedCuisines));
+    formData.set("address", address);
+    formData.set("latitude", String(selectedLocation.latitude));
+    formData.set("longitude", String(selectedLocation.longitude));
     setBusy(true);
     setError("");
 
@@ -89,45 +162,46 @@ export default function AddRestaurantModal({ cuisines, restaurant = null, onClos
             />
           </label>
 
-          <label>
-            Adres *
-            <input
-              name="address"
-              maxLength="255"
-              required
-              defaultValue={restaurant?.address || ""}
-              placeholder="ul. Przykładowa 12, Poznań"
-            />
-          </label>
-
-          <div className="coordinates-row">
+          <div className="address-search-field">
             <label>
-              Szerokość geograficzna *
+              Adres lokalu *
               <input
-                name="latitude"
-                type="number"
-                step="0.000001"
-                min="-90"
-                max="90"
+                name="address"
+                maxLength="255"
                 required
-                defaultValue={restaurant?.latitude ?? ""}
-                placeholder="52.406374"
+                value={address}
+                onChange={handleAddressChange}
+                placeholder="np. Stary Rynek 1, Poznań"
               />
             </label>
-            <label>
-              Długość geograficzna *
-              <input
-                name="longitude"
-                type="number"
-                step="0.000001"
-                min="-180"
-                max="180"
-                required
-                defaultValue={restaurant?.longitude ?? ""}
-                placeholder="16.925168"
-              />
-            </label>
+            <button className="secondary-button" type="button" onClick={searchAddress} disabled={addressBusy}>
+              {addressBusy ? "Wyszukiwanie…" : "Znajdź adres"}
+            </button>
           </div>
+
+          {addressResults.length > 0 && (
+            <div className="address-results" role="listbox" aria-label="Wyniki wyszukiwania adresu">
+              {addressResults.map((location) => (
+                <button
+                  className="address-result"
+                  type="button"
+                  key={`${location.osm_type}-${location.osm_id}`}
+                  onClick={() => chooseLocation(location)}
+                >
+                  {location.display_name}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {selectedLocation && (
+            <p className="selected-location" role="status">
+              Lokalizacja wybrana: {selectedLocation.display_name}
+            </p>
+          )}
+          <p className="geocoding-attribution">
+            Wyszukiwanie adresów: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">© OpenStreetMap contributors</a>
+          </p>
 
           <label>
             Krótki opis
@@ -158,16 +232,20 @@ export default function AddRestaurantModal({ cuisines, restaurant = null, onClos
           </fieldset>
 
           <label>
-            {isEditing ? "Zmień zdjęcie (opcjonalnie)" : "Zdjęcie restauracji *"}
+            {photoRequired && !isEditing ? "Zdjęcie restauracji *" : "Zdjęcie restauracji (opcjonalnie)"}
             <input
               name="photo"
               type="file"
               accept="image/png,image/jpeg,image/webp"
-              required={!isEditing}
+              required={photoRequired && !isEditing}
               onChange={handlePhotoChange}
             />
           </label>
-          <p className="form-hint">Akceptowane formaty: JPG, PNG, WebP. Maksymalny rozmiar: 5 MB.</p>
+          <p className="form-hint">
+            {photoRequired && !isEditing
+              ? "Dodaj zdjęcie JPG, PNG albo WebP o maksymalnym rozmiarze 5 MB."
+              : "Możesz dodać zdjęcie JPG, PNG albo WebP o maksymalnym rozmiarze 5 MB."}
+          </p>
 
           {previewUrl && <img className="photo-preview" src={previewUrl} alt="Podgląd zdjęcia restauracji" />}
 
