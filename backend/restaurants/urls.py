@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import auth_views, comment_search_views, geocoding_views, interaction_views
+from . import app_config_views, auth_views, comment_search_views, geocoding_views, interaction_views
 from .views import nearby_restaurant_list, restaurant_list
 
 urlpatterns = [
@@ -22,6 +22,7 @@ urlpatterns = [
         interaction_views.delete_restaurant,
         name="restaurant-delete",
     ),
+    path("app-config", app_config_views.app_config, name="app-config"),
     path("geocode/address", geocoding_views.address_search, name="address-search"),
     path("reviews/search", comment_search_views.comment_search, name="comment-search"),
     path("reviews/<int:review_id>", interaction_views.update_review, name="review-update"),
