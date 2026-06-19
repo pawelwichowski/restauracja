@@ -1,11 +1,23 @@
 from django.urls import path
 
-from . import app_config_views, auth_views, comment_search_views, geocoding_views, interaction_views
+from . import (
+    app_config_views,
+    auth_views,
+    comment_search_views,
+    geocoding_views,
+    interaction_views,
+    restaurant_name_views,
+)
 from .views import nearby_restaurant_list, restaurant_list
 
 urlpatterns = [
     path("restaurants", restaurant_list, name="restaurant-list"),
     path("restaurants/nearby", nearby_restaurant_list, name="nearby-restaurant-list"),
+    path(
+        "restaurants/name-availability",
+        restaurant_name_views.restaurant_name_availability,
+        name="restaurant-name-availability",
+    ),
     path("restaurants/<int:restaurant_id>", interaction_views.restaurant_detail, name="restaurant-detail"),
     path(
         "restaurants/<int:restaurant_id>/reviews",
