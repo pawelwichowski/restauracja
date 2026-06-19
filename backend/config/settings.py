@@ -18,7 +18,7 @@ RESTAURANT_PHOTO_REQUIRED = False
 
 # Publiczny Nominatim jest używany wyłącznie do ręcznie uruchamianego wyszukania adresu.
 NOMINATIM_URL = "https://nominatim.openstreetmap.org/search"
-NOMINATIM_USER_AGENT = "Smacznie-student-project/1.0 (contact: no-reply@smacznie.local)"
+NOMINATIM_USER_AGENT = "Smacznie-student-project/1.0"
 
 INSTALLED_APPS = [
     "django.contrib.admin",
