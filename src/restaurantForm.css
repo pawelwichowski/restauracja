@@ -49,7 +49,7 @@
 }
 
 .restaurant-form > label,
-.coordinates-row label {
+.address-search-field label {
   display: flex;
   flex-direction: column;
   gap: 0.45rem;
@@ -75,13 +75,70 @@
   border-color: #277352;
 }
 
-.coordinates-row {
+.address-search-field {
   display: flex;
-  gap: 1rem;
+  align-items: end;
+  gap: 0.75rem;
 }
 
-.coordinates-row label {
+.address-search-field label {
   flex: 1;
+}
+
+.address-search-field button {
+  flex: 0 0 auto;
+  margin-bottom: 0;
+  white-space: nowrap;
+}
+
+.address-results {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin-top: -0.35rem;
+  border: 1px solid #dce6dd;
+  border-radius: 0.8rem;
+  background: #f9fcf9;
+  padding: 0.55rem;
+}
+
+.address-result {
+  width: 100%;
+  border: 1px solid transparent;
+  border-radius: 0.6rem;
+  background: #fff;
+  color: #294636;
+  padding: 0.7rem 0.75rem;
+  font-size: 0.87rem;
+  line-height: 1.35;
+  text-align: left;
+}
+
+.address-result:hover,
+.address-result:focus-visible {
+  border-color: #74a885;
+  background: #eff8f1;
+}
+
+.selected-location {
+  margin: -0.25rem 0 0;
+  border-radius: 0.65rem;
+  background: #e8f5ec;
+  color: #1e6a45;
+  padding: 0.7rem 0.75rem;
+  font-size: 0.87rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.geocoding-attribution {
+  margin: -0.45rem 0 0;
+  color: #718078;
+  font-size: 0.76rem;
+}
+
+.geocoding-attribution a {
+  color: inherit;
 }
 
 .cuisine-selection {
@@ -155,11 +212,13 @@
     padding: 1.5rem;
   }
 
-  .coordinates-row,
+  .address-search-field,
   .restaurant-form-actions {
+    align-items: stretch;
     flex-direction: column;
   }
 
+  .address-search-field button,
   .restaurant-form-actions button {
     width: 100%;
   }
