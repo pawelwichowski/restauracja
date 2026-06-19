@@ -7,6 +7,7 @@ import "./auth.css";
 import "./restaurantForm.css";
 import "./reviews.css";
 import "./commentSearch.css";
+import "./presentation.css";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
