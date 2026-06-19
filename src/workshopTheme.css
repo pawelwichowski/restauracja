@@ -1,0 +1,804 @@
+:root {
+  --ink: #34302d;
+  --ink-soft: #462d26;
+  --wood: #6a4535;
+  --wood-soft: #c1a18a;
+  --paper: #f5e7de;
+  --paper-light: #fff8f1;
+  --paper-muted: #dabdab;
+  --cream: #f6b98a;
+  --peach: #f5ad87;
+  --orange: #ef9849;
+  --orange-strong: #f08149;
+  --blue-deep: #395c78;
+  --blue: #5b7a8c;
+  --blue-muted: #768a88;
+  --sage: #6b6a65;
+  --red: #913a1e;
+  --red-bright: #bd3b3b;
+  --red-dark: #9d312f;
+}
+
+:root {
+  color: var(--ink);
+  background: var(--paper-muted);
+  font-family: "Trebuchet MS", "Arial Narrow", Arial, sans-serif;
+}
+
+* {
+  scrollbar-color: var(--blue-deep) var(--paper-muted);
+}
+
+::selection {
+  background: var(--orange);
+  color: var(--ink);
+}
+
+body {
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 17% 18%, rgb(255 255 255 / 0.46) 0 1px, transparent 1.5px) 0 0 / 12px 12px,
+    radial-gradient(circle at 73% 61%, rgb(70 45 38 / 0.06) 0 1px, transparent 1.5px) 0 0 / 17px 17px,
+    linear-gradient(132deg, #f5e7de 0%, #dabdab 49%, #c1a18a 100%);
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+button {
+  letter-spacing: 0.01em;
+}
+
+.app-shell {
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(90deg, rgb(52 48 45 / 0.06) 1px, transparent 1px) 0 0 / 72px 72px,
+    linear-gradient(rgb(52 48 45 / 0.045) 1px, transparent 1px) 0 0 / 72px 72px;
+}
+
+.app-shell::before {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(115deg, transparent 0 33%, rgb(240 129 73 / 0.08) 33% 34%, transparent 34% 100%),
+    linear-gradient(65deg, transparent 0 67%, rgb(57 92 120 / 0.08) 67% 68%, transparent 68% 100%);
+  content: "";
+}
+
+.topbar,
+main,
+.footer,
+.page-notice {
+  position: relative;
+  z-index: 1;
+}
+
+.topbar {
+  min-height: 82px;
+  margin-top: 1rem;
+  border: 3px solid var(--ink);
+  border-radius: 4px;
+  background:
+    linear-gradient(135deg, rgb(255 255 255 / 0.1), transparent 34%),
+    var(--blue-deep);
+  box-shadow: 5px 5px 0 var(--ink-soft);
+}
+
+.brand {
+  color: var(--paper-light);
+  font-family: Impact, "Arial Black", "Trebuchet MS", sans-serif;
+  font-size: 1.55rem;
+  letter-spacing: 0.035em;
+  text-shadow: 2px 2px 0 var(--ink-soft);
+}
+
+.brand:hover {
+  color: var(--cream);
+}
+
+.brand-mark {
+  width: 2.35rem;
+  height: 2.35rem;
+  border: 2px solid var(--ink);
+  border-radius: 2px;
+  background: var(--orange-strong);
+  box-shadow: 2px 2px 0 var(--ink-soft);
+  color: var(--ink);
+  text-shadow: none;
+}
+
+.topbar-right::before {
+  color: var(--paper-muted);
+  font-family: "Trebuchet MS", Arial, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.user-greeting {
+  color: var(--paper-light);
+  font-weight: 800;
+}
+
+.header-button,
+.secondary-button,
+.primary-button,
+.danger-button,
+.details-button {
+  border-radius: 2px;
+  box-shadow: 2px 2px 0 var(--ink-soft);
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.header-button {
+  border: 2px solid var(--ink);
+  background: var(--paper-muted);
+  color: var(--ink);
+}
+
+.header-button:hover {
+  transform: translate(-1px, -1px);
+  background: var(--paper-light);
+  box-shadow: 3px 3px 0 var(--ink-soft);
+}
+
+.header-button-primary,
+.primary-button {
+  border: 2px solid var(--ink);
+  background: var(--orange-strong);
+  color: var(--ink);
+}
+
+.header-button-primary:hover,
+.primary-button:hover {
+  background: var(--orange);
+}
+
+.hero {
+  padding-top: 5.1rem;
+  padding-bottom: 3.9rem;
+}
+
+.hero::before {
+  display: inline-block;
+  margin-bottom: 1rem;
+  border: 2px solid var(--ink);
+  background: var(--red);
+  box-shadow: 3px 3px 0 var(--ink-soft);
+  color: var(--paper-light);
+  padding: 0.32rem 0.58rem;
+  content: "LOKALE · OPINIE · SMAKI";
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.hero .eyebrow {
+  color: var(--red);
+  font-weight: 900;
+}
+
+.hero h1,
+.filters-panel h2,
+.results-heading h2,
+.empty-state h3,
+.auth-modal h2,
+.restaurant-modal h2,
+.comment-search-modal h2,
+.details-heading h2,
+.reviews-heading h3,
+.confirm-modal h2 {
+  color: var(--ink-soft);
+  font-family: Impact, "Arial Black", "Trebuchet MS", sans-serif;
+  letter-spacing: 0.018em;
+  text-transform: uppercase;
+}
+
+.hero h1 {
+  max-width: 790px;
+  color: var(--ink-soft);
+  font-size: clamp(3rem, 7vw, 5.6rem);
+  line-height: 0.92;
+  text-shadow: 3px 3px 0 var(--paper-light);
+}
+
+.hero h1::after {
+  display: block;
+  width: min(180px, 45vw);
+  height: 8px;
+  margin-top: 1.05rem;
+  background: var(--red-bright);
+  box-shadow: 3px 3px 0 var(--ink-soft);
+  content: "";
+}
+
+.hero > p:last-child {
+  color: var(--ink-soft);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.13rem;
+  font-weight: 700;
+}
+
+.content-layout {
+  gap: 2.4rem;
+}
+
+.filters-panel {
+  position: sticky;
+  top: 1rem;
+  overflow: hidden;
+  border: 3px solid var(--ink);
+  border-radius: 3px;
+  background:
+    linear-gradient(145deg, rgb(255 255 255 / 0.13), transparent 45%),
+    var(--blue);
+  box-shadow: 5px 5px 0 var(--ink-soft);
+}
+
+.filters-panel::before {
+  display: block;
+  height: 8px;
+  margin: -1.5rem -1.5rem 1.15rem;
+  background: var(--red-bright);
+  content: "";
+}
+
+.filters-panel .eyebrow,
+.filters-panel h2,
+.filters-panel label,
+.location-filter > p {
+  color: var(--paper-light);
+}
+
+.filters-panel .eyebrow {
+  color: var(--cream);
+}
+
+.filters-panel h2 {
+  font-size: 1.55rem;
+  line-height: 1.02;
+  text-shadow: 2px 2px 0 var(--ink-soft);
+}
+
+.filters-form input,
+.filters-form select,
+.restaurant-form input,
+.restaurant-form textarea,
+.auth-form input,
+.review-form select,
+.review-form textarea,
+.comment-search-form input {
+  border: 2px solid var(--ink-soft);
+  border-radius: 2px;
+  background: var(--paper-light);
+  box-shadow: inset 0 2px 0 rgb(52 48 45 / 0.1);
+  color: var(--ink);
+}
+
+.filters-form input:focus,
+.filters-form select:focus,
+.restaurant-form input:focus,
+.restaurant-form textarea:focus,
+.auth-form input:focus,
+.review-form select:focus,
+.review-form textarea:focus,
+.comment-search-form input:focus {
+  outline: 3px solid rgb(240 129 73 / 0.45);
+  border-color: var(--red);
+}
+
+.filters-form .secondary-button,
+.address-search-field .secondary-button {
+  border: 2px solid var(--ink);
+  background: var(--paper-muted);
+  color: var(--ink);
+}
+
+.filters-form .secondary-button:hover,
+.address-search-field .secondary-button:hover,
+.secondary-button:hover {
+  background: var(--cream);
+}
+
+.location-filter {
+  border-top: 2px solid rgb(245 231 222 / 0.4);
+  border-bottom: 2px solid rgb(245 231 222 / 0.4);
+  padding: 0.9rem 0;
+}
+
+.location-filter > p {
+  margin-top: 0;
+  font-family: Impact, "Arial Black", sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.filter-address-search .selected-location,
+.filter-address-search .address-results {
+  border-color: var(--ink-soft);
+}
+
+.filter-address-search .geocoding-attribution {
+  color: var(--paper-muted);
+}
+
+.results-heading {
+  align-items: center;
+  padding-bottom: 0.8rem;
+  border-bottom: 3px solid var(--ink);
+}
+
+.results-heading .eyebrow {
+  color: var(--red);
+}
+
+.results-heading h2 {
+  color: var(--ink-soft);
+  font-size: 2rem;
+}
+
+.results-heading > p {
+  color: var(--ink-soft);
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 700;
+}
+
+.restaurant-grid {
+  gap: 1.25rem;
+}
+
+.restaurant-card {
+  position: relative;
+  overflow: hidden;
+  border: 3px solid var(--ink);
+  border-radius: 3px;
+  background: var(--paper-light);
+  box-shadow: 5px 5px 0 var(--ink-soft);
+}
+
+.restaurant-card::after {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 42px;
+  height: 42px;
+  border-left: 3px solid var(--ink);
+  border-bottom: 3px solid var(--ink);
+  background: var(--orange-strong);
+  clip-path: polygon(100% 0, 0 0, 100% 100%);
+  content: "";
+}
+
+.restaurant-card:hover {
+  transform: translate(-2px, -3px) rotate(-0.25deg);
+  box-shadow: 8px 8px 0 var(--ink-soft);
+}
+
+.restaurant-photo,
+.details-photo {
+  filter: saturate(0.9) contrast(1.04) sepia(0.08);
+}
+
+.restaurant-photo-placeholder,
+.details-photo-placeholder,
+.comment-result-photo-placeholder {
+  background:
+    linear-gradient(45deg, transparent 48%, rgb(52 48 45 / 0.12) 48% 52%, transparent 52%),
+    var(--paper-muted);
+  color: var(--blue-deep);
+  font-family: Impact, "Arial Black", sans-serif;
+  text-transform: uppercase;
+}
+
+.card-topline {
+  padding-top: 1rem;
+}
+
+.cuisine-badge,
+.distance-label,
+.reviews-heading span {
+  border: 2px solid var(--ink-soft);
+  border-radius: 2px;
+  box-shadow: 2px 2px 0 rgb(70 45 38 / 0.22);
+  font-weight: 900;
+}
+
+.cuisine-badge {
+  background: var(--blue-deep);
+  color: var(--paper-light);
+}
+
+.distance-label {
+  background: var(--orange);
+  color: var(--ink);
+  padding: 0.28rem 0.45rem;
+  font-size: 0.76rem;
+}
+
+.card-content h3 {
+  color: var(--ink-soft);
+  font-family: Impact, "Arial Black", sans-serif;
+  font-size: 1.55rem;
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+}
+
+.address,
+.description,
+.details-owner,
+.review-card-heading span,
+.empty-comment,
+.comment-result-meta {
+  color: var(--sage);
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 700;
+}
+
+.rating-row {
+  border-top: 2px solid var(--wood-soft);
+  background: #f1ddd0;
+}
+
+.star,
+.details-rating > span,
+.details-rating strong,
+.review-card-heading b {
+  color: var(--red-bright);
+  text-shadow: 1px 1px 0 var(--ink-soft);
+}
+
+.review-count {
+  color: var(--ink-soft);
+  font-weight: 900;
+}
+
+.details-button {
+  border: 2px solid var(--ink);
+  background: var(--orange-strong);
+  color: var(--ink);
+  padding: 0.55rem 0.7rem;
+}
+
+.details-button:hover {
+  background: var(--orange);
+  text-decoration: none;
+}
+
+.empty-state {
+  border: 3px dashed var(--blue-deep);
+  border-radius: 3px;
+  background: rgb(245 231 222 / 0.82);
+  box-shadow: 4px 4px 0 rgb(70 45 38 / 0.22);
+}
+
+.empty-state p {
+  color: var(--ink-soft);
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 700;
+}
+
+.modal-backdrop {
+  background:
+    radial-gradient(circle at center, rgb(57 92 120 / 0.24), transparent 58%),
+    rgb(52 48 45 / 0.78);
+  backdrop-filter: blur(3px);
+}
+
+.auth-modal,
+.restaurant-modal,
+.details-modal,
+.confirm-modal,
+.comment-search-modal {
+  border: 3px solid var(--ink);
+  border-radius: 3px;
+  background:
+    linear-gradient(125deg, rgb(255 255 255 / 0.35), transparent 28%),
+    var(--paper);
+  box-shadow: 8px 8px 0 var(--ink-soft), 0 24px 70px rgb(0 0 0 / 0.28);
+}
+
+.auth-modal::before,
+.restaurant-modal::before,
+.comment-search-modal::before,
+.confirm-modal::before {
+  display: block;
+  height: 7px;
+  margin: -2rem -2rem 1.45rem;
+  background: var(--blue-deep);
+  content: "";
+}
+
+.restaurant-modal::before {
+  margin: -2rem -2rem 1.45rem;
+}
+
+.confirm-modal::before {
+  margin: -1.6rem -1.6rem 1.3rem;
+  background: var(--red);
+}
+
+.modal-close {
+  border: 2px solid var(--ink);
+  border-radius: 2px;
+  background: var(--orange-strong);
+  box-shadow: 2px 2px 0 var(--ink-soft);
+  color: var(--ink);
+  font-family: Impact, "Arial Black", sans-serif;
+}
+
+.modal-close:hover {
+  background: var(--orange);
+}
+
+.auth-form label,
+.restaurant-form label,
+.restaurant-form fieldset,
+.review-form label,
+.comment-search-form label {
+  color: var(--ink-soft);
+  font-weight: 900;
+}
+
+.form-hint {
+  color: var(--sage);
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 700;
+}
+
+.form-message,
+.selected-location,
+.address-results,
+.review-panel,
+.review-card,
+.comment-result-card {
+  border: 2px solid var(--wood-soft);
+  border-radius: 3px;
+}
+
+.form-error {
+  background: #f7d4c4;
+  color: var(--red-dark);
+}
+
+.form-success,
+.selected-location {
+  background: #d4ddd5;
+  color: var(--blue-deep);
+}
+
+.address-result {
+  border: 2px solid var(--wood-soft);
+  border-radius: 2px;
+  background: var(--paper-light);
+  color: var(--ink-soft);
+  font-weight: 800;
+}
+
+.address-result:hover,
+.address-result:focus-visible {
+  border-color: var(--blue-deep);
+  background: var(--cream);
+}
+
+.restaurant-name-status.is-available {
+  color: var(--blue-deep);
+}
+
+.restaurant-name-status.is-unavailable {
+  color: var(--red-dark);
+}
+
+.cuisine-selection {
+  border: 2px solid var(--wood-soft);
+  border-radius: 3px;
+  background: rgb(255 248 241 / 0.6);
+}
+
+.cuisine-option {
+  border: 2px solid var(--wood-soft);
+  border-radius: 2px;
+  background: var(--paper-light);
+  color: var(--ink-soft);
+}
+
+.cuisine-option input {
+  accent-color: var(--red);
+}
+
+.photo-preview {
+  border: 3px solid var(--ink);
+  border-radius: 2px;
+  box-shadow: 4px 4px 0 var(--wood);
+}
+
+.details-content {
+  background: var(--paper);
+}
+
+.details-heading h2 {
+  font-size: 2.3rem;
+}
+
+.details-rating {
+  border: 2px solid var(--ink-soft);
+  border-radius: 2px;
+  background: var(--paper-light);
+  box-shadow: 3px 3px 0 var(--wood-soft);
+  padding: 0.45rem 0.6rem;
+}
+
+.owner-actions,
+.review-actions,
+.confirm-actions {
+  gap: 0.8rem;
+}
+
+.reviews-section {
+  border-top: 3px solid var(--wood-soft);
+}
+
+.reviews-heading span {
+  background: var(--blue-deep);
+  color: var(--paper-light);
+}
+
+.review-panel {
+  background: #f3e4d8;
+}
+
+.review-card {
+  background: var(--paper-light);
+  box-shadow: 3px 3px 0 rgb(70 45 38 / 0.16);
+}
+
+.review-card p,
+.comment-result-text {
+  color: var(--ink-soft);
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 700;
+}
+
+.review-owner-actions button,
+.danger-text-button,
+.auth-links button {
+  color: var(--blue-deep);
+  font-weight: 900;
+}
+
+.review-owner-actions .danger-text-button,
+.danger-text-button {
+  color: var(--red-dark);
+}
+
+.danger-button {
+  border: 2px solid var(--ink);
+  background: var(--red-bright);
+  color: var(--paper-light);
+}
+
+.danger-button:hover {
+  background: var(--red-dark);
+}
+
+.confirm-modal h2 {
+  color: var(--red-dark);
+}
+
+.confirm-modal p {
+  color: var(--ink-soft);
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 700;
+}
+
+.comment-search-results {
+  border-top: 3px solid var(--wood-soft);
+}
+
+.comment-search-results h3 {
+  color: var(--ink-soft);
+  font-family: Impact, "Arial Black", sans-serif;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.comment-result-card {
+  background: var(--paper-light);
+  box-shadow: 3px 3px 0 rgb(70 45 38 / 0.14);
+}
+
+.comment-result-card:hover {
+  transform: translate(-1px, -1px);
+  border-color: var(--blue-deep);
+  background: #f8e5d7;
+  box-shadow: 4px 4px 0 rgb(70 45 38 / 0.22);
+}
+
+.comment-result-content strong {
+  color: var(--ink-soft);
+  font-family: Impact, "Arial Black", sans-serif;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.footer {
+  margin-top: 1rem;
+  border-top: 3px solid var(--ink);
+  background: var(--blue-deep);
+}
+
+.footer::after {
+  color: var(--paper-muted);
+  font-family: "Trebuchet MS", Arial, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.page-notice {
+  border: 3px solid var(--ink);
+  border-radius: 2px;
+  background: var(--orange);
+  box-shadow: 4px 4px 0 var(--ink-soft);
+  color: var(--ink);
+}
+
+@media (max-width: 860px) {
+  .filters-panel {
+    position: static;
+  }
+
+  .topbar {
+    margin-top: 0.6rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .topbar {
+    min-height: auto;
+    margin: 0.45rem 0.5rem 0;
+    padding: 1rem;
+    box-shadow: 4px 4px 0 var(--ink-soft);
+  }
+
+  .topbar-right::before {
+    display: none;
+  }
+
+  .brand {
+    font-size: 1.35rem;
+  }
+
+  .hero {
+    padding-top: 3.4rem;
+    padding-bottom: 2.8rem;
+  }
+
+  .hero h1 {
+    font-size: clamp(2.8rem, 15vw, 4.2rem);
+  }
+
+  .filters-panel {
+    box-shadow: 4px 4px 0 var(--ink-soft);
+  }
+
+  .auth-modal::before,
+  .restaurant-modal::before,
+  .comment-search-modal::before {
+    margin: -1.5rem -1.5rem 1.2rem;
+  }
+
+  .confirm-modal::before {
+    margin: -1.25rem -1.25rem 1rem;
+  }
+}
