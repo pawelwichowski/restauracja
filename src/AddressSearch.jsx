@@ -6,7 +6,7 @@ export default function AddressSearch({
   onQueryChange,
   selectedLocation,
   onSelectLocation,
-  onClearLocation,
+  onSelectionCleared,
   placeholder,
   inputName,
   required = false,
@@ -19,7 +19,7 @@ export default function AddressSearch({
 
   const handleInputChange = (event) => {
     onQueryChange(event.target.value);
-    if (selectedLocation) onClearLocation?.();
+    if (selectedLocation) onSelectionCleared?.();
     setResults([]);
     setError("");
   };
@@ -64,7 +64,7 @@ export default function AddressSearch({
 
   const clearLocation = () => {
     onQueryChange("");
-    onClearLocation?.();
+    onSelectionCleared?.();
     setResults([]);
     setError("");
   };
