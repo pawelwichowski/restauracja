@@ -82,12 +82,6 @@ def nominatim_search(query):
 
 @require_GET
 def address_search(request):
-    if not request.user.is_authenticated:
-        return JsonResponse(
-            {"detail": "Zaloguj się, aby wyszukać adres."},
-            status=401,
-        )
-
     try:
         query = validate_query(request.GET.get("q", ""))
         results = nominatim_search(query)
