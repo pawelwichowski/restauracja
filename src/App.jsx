@@ -1,14 +1,8 @@
 import { useEffect, useState } from "react";
 import AddRestaurantModal from "./AddRestaurantModal.jsx";
+import AddressSearch from "./AddressSearch.jsx";
 import CommentSearchModal from "./CommentSearchModal.jsx";
 import RestaurantDetailsModal from "./RestaurantDetailsModal.jsx";
-
-const SIMULATED_LOCATIONS = [
-  { id: "none", label: "Nie filtruj po lokalizacji" },
-  { id: "stary-rynek", label: "Stary Rynek, Poznań", latitude: 52.408431, longitude: 16.934216 },
-  { id: "dworzec-glowny", label: "Dworzec Główny, Poznań", latitude: 52.402429, longitude: 16.910797 },
-  { id: "rynek-jezycki", label: "Rynek Jeżycki, Poznań", latitude: 52.408255, longitude: 16.898405 },
-];
 
 const RATING_OPTIONS = [
   ["0", "Dowolna"],
@@ -28,7 +22,8 @@ const initialFilters = {
   cuisine: "Wszystkie",
   minimumRating: "0",
   sort: "rating-desc",
-  locationId: "none",
+  locationQuery: "",
+  location: null,
   radiusKm: "2",
 };
 
@@ -152,8 +147,8 @@ export default function App() {
   const [isCommentSearchOpen, setCommentSearchOpen] = useState(false);
   const [refreshVersion, setRefreshVersion] = useState(0);
 
-  const selectedLocation = SIMULATED_LOCATIONS.find((location) => location.id === filters.locationId);
-  const isNearbySearch = selectedLocation?.latitude !== undefined;
+  const selectedLocation = filters.location;
+  const isNearbySearch = Boolean(selectedLocation);
 
   const apiRequest = async (path, options = {}) => {
     const method = options.method || "GET";
@@ -216,7 +211,7 @@ export default function App() {
       });
 
     return () => controller.abort();
-  }, [filters, isNearbySearch, selectedLocation, refreshVersion]);
+  }, [filters, refreshVersion]);
 
   useEffect(() => {
     if (!pageNotice) return undefined;
@@ -323,14 +318,33 @@ export default function App() {
 
   const updateFilter = (event) => {
     const { name, value } = event.target;
-    setFilters((currentFilters) => {
-      const nextFilters = { ...currentFilters, [name]: value };
-      if (name === "locationId") {
-        if (value === "none" && currentFilters.sort === "distance-asc") nextFilters.sort = "rating-desc";
-        if (value !== "none") nextFilters.sort = "distance-asc";
-      }
-      return nextFilters;
-    });
+    setFilters((currentFilters) => ({ ...currentFilters, [name]: value }));
+  };
+
+  const handleLocationQueryChange = (value) => {
+    setFilters((currentFilters) => ({
+      ...currentFilters,
+      locationQuery: value,
+      location: null,
+      sort: currentFilters.sort === "distance-asc" ? "rating-desc" : currentFilters.sort,
+    }));
+  };
+
+  const handleLocationSelected = (location) => {
+    setFilters((currentFilters) => ({
+      ...currentFilters,
+      locationQuery: location.display_name,
+      location,
+      sort: "distance-asc",
+    }));
+  };
+
+  const clearFilterLocation = () => {
+    setFilters((currentFilters) => ({
+      ...currentFilters,
+      location: null,
+      sort: currentFilters.sort === "distance-asc" ? "rating-desc" : currentFilters.sort,
+    }));
   };
 
   const resetFilters = () => setFilters(initialFilters);
@@ -376,8 +390,18 @@ export default function App() {
               <label>Nazwa restauracji<input name="name" type="search" value={filters.name} onChange={updateFilter} placeholder="np. ramen" /></label>
               <label>Rodzaj kuchni<select name="cuisine" value={filters.cuisine} onChange={updateFilter}>{cuisineOptions.map((cuisine) => <option key={cuisine} value={cuisine}>{cuisine}</option>)}</select></label>
               <div className="location-filter">
-                <p>Symulowana lokalizacja użytkownika</p>
-                <label>Pozycja<select name="locationId" value={filters.locationId} onChange={updateFilter}>{SIMULATED_LOCATIONS.map((location) => <option key={location.id} value={location.id}>{location.label}</option>)}</select></label>
+                <p>Wyszukiwanie w pobliżu</p>
+                <AddressSearch
+                  label="Lokalizacja"
+                  query={filters.locationQuery}
+                  onQueryChange={handleLocationQueryChange}
+                  selectedLocation={selectedLocation}
+                  onSelectLocation={handleLocationSelected}
+                  onSelectionCleared={clearFilterLocation}
+                  placeholder="np. Stary Rynek, Poznań"
+                  showClear
+                  className="filter-address-search"
+                />
                 {isNearbySearch && <label>Promień wyszukiwania<select name="radiusKm" value={filters.radiusKm} onChange={updateFilter}><option value="0.5">500 m</option><option value="1">1 km</option><option value="2">2 km</option><option value="3">3 km</option><option value="5">5 km</option></select></label>}
               </div>
               <label>Minimalna ocena<select name="minimumRating" value={filters.minimumRating} onChange={updateFilter}>{RATING_OPTIONS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
@@ -389,7 +413,7 @@ export default function App() {
           <section className="results-section" aria-live="polite">
             <div className="results-heading">
               <div><p className="eyebrow">Wyniki</p><h2>{resultLabel(restaurants.length)}</h2></div>
-              <p>{isNearbySearch ? `Pozycja symulowana: ${selectedLocation.label}. Promień: ${filters.radiusKm} km.` : "Oceny są aktualizowane na podstawie opublikowanych opinii."}</p>
+              <p>{isNearbySearch ? `Lokalizacja: ${selectedLocation.display_name}. Promień: ${filters.radiusKm} km.` : "Oceny są aktualizowane na podstawie opublikowanych opinii."}</p>
             </div>
 
             {loading ? (
