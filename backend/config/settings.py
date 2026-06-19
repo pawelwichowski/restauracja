@@ -11,6 +11,15 @@ DEBUG = os.getenv("DJANGO_DEBUG", "1") == "1"
 ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
 CSRF_TRUSTED_ORIGINS = ["http://localhost:5173", "http://127.0.0.1:5173"]
 
+# Łatwe przełączenie wymagalności zdjęcia podczas prezentacji.
+# False: można dodać restaurację bez zdjęcia.
+# True: zdjęcie jest wymagane również przez backend.
+RESTAURANT_PHOTO_REQUIRED = False
+
+# Publiczny Nominatim jest używany wyłącznie do ręcznie uruchamianego wyszukania adresu.
+NOMINATIM_URL = "https://nominatim.openstreetmap.org/search"
+NOMINATIM_USER_AGENT = "Smacznie-student-project/1.0"
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",

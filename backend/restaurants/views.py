@@ -2,6 +2,7 @@ import json
 from decimal import Decimal, InvalidOperation
 
 from PIL import Image, UnidentifiedImageError
+from django.conf import settings
 from django.db.models import FloatField
 from django.db.models.expressions import RawSQL
 from django.http import JsonResponse
@@ -194,9 +195,11 @@ def parse_cuisine_names(value):
     return cuisines
 
 
-def validate_image(image):
+def validate_image(image, required=True):
     if image is None:
-        raise ValueError("Dodaj zdjęcie restauracji.")
+        if required:
+            raise ValueError("Dodaj zdjęcie restauracji.")
+        return
 
     if image.size > MAX_IMAGE_SIZE_BYTES:
         raise ValueError("Zdjęcie może mieć maksymalnie 5 MB.")
@@ -230,7 +233,7 @@ def create_restaurant(request):
         longitude = parse_float(request.POST.get("longitude"), "longitude", -180, 180)
         cuisines = parse_cuisine_names(request.POST.get("cuisine_names"))
         photo = request.FILES.get("photo")
-        validate_image(photo)
+        validate_image(photo, required=settings.RESTAURANT_PHOTO_REQUIRED)
     except ValueError as exc:
         return JsonResponse({"detail": str(exc)}, status=400)
 
