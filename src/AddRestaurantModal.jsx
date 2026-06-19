@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import AddressSearch from "./AddressSearch.jsx";
 
 function getCookie(name) {
   const prefix = `${name}=`;
@@ -26,8 +27,6 @@ export default function AddRestaurantModal({ cuisines, restaurant = null, onClos
   const [previewUrl, setPreviewUrl] = useState(restaurant?.photo_url || "");
   const [address, setAddress] = useState(restaurant?.address || "");
   const [selectedLocation, setSelectedLocation] = useState(() => initialLocation(restaurant));
-  const [addressResults, setAddressResults] = useState([]);
-  const [addressBusy, setAddressBusy] = useState(false);
   const [photoRequired, setPhotoRequired] = useState(false);
 
   useEffect(() => () => {
@@ -47,47 +46,14 @@ export default function AddRestaurantModal({ cuisines, restaurant = null, onClos
     setPreviewUrl(file ? URL.createObjectURL(file) : restaurant?.photo_url || "");
   };
 
-  const handleAddressChange = (event) => {
-    setAddress(event.target.value);
+  const handleAddressChange = (value) => {
+    setAddress(value);
     setSelectedLocation(null);
-    setAddressResults([]);
-  };
-
-  const searchAddress = async () => {
-    const query = address.trim();
-    if (query.length < 3) {
-      setError("Wpisz adres zawierający co najmniej 3 znaki.");
-      return;
-    }
-
-    setAddressBusy(true);
-    setError("");
-    setAddressResults([]);
-
-    try {
-      const response = await fetch(`/api/geocode/address?q=${encodeURIComponent(query)}`, {
-        credentials: "same-origin",
-      });
-      const payload = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        throw new Error(payload.detail || "Nie udało się wyszukać adresu.");
-      }
-      setAddressResults(payload.results);
-      if (!payload.results.length) {
-        setError("Nie znaleziono pasującego adresu. Doprecyzuj nazwę ulicy lub miasto.");
-      }
-    } catch (requestError) {
-      setError(requestError.message);
-    } finally {
-      setAddressBusy(false);
-    }
   };
 
   const chooseLocation = (location) => {
     setAddress(location.display_name);
     setSelectedLocation(location);
-    setAddressResults([]);
-    setError("");
   };
 
   const handleSubmit = async (event) => {
@@ -162,46 +128,17 @@ export default function AddRestaurantModal({ cuisines, restaurant = null, onClos
             />
           </label>
 
-          <div className="address-search-field">
-            <label>
-              Adres lokalu *
-              <input
-                name="address"
-                maxLength="255"
-                required
-                value={address}
-                onChange={handleAddressChange}
-                placeholder="np. Stary Rynek 1, Poznań"
-              />
-            </label>
-            <button className="secondary-button" type="button" onClick={searchAddress} disabled={addressBusy}>
-              {addressBusy ? "Wyszukiwanie…" : "Znajdź adres"}
-            </button>
-          </div>
-
-          {addressResults.length > 0 && (
-            <div className="address-results" role="listbox" aria-label="Wyniki wyszukiwania adresu">
-              {addressResults.map((location) => (
-                <button
-                  className="address-result"
-                  type="button"
-                  key={`${location.osm_type}-${location.osm_id}`}
-                  onClick={() => chooseLocation(location)}
-                >
-                  {location.display_name}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {selectedLocation && (
-            <p className="selected-location" role="status">
-              Lokalizacja wybrana: {selectedLocation.display_name}
-            </p>
-          )}
-          <p className="geocoding-attribution">
-            Wyszukiwanie adresów: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">© OpenStreetMap contributors</a>
-          </p>
+          <AddressSearch
+            label="Adres lokalu"
+            inputName="address"
+            query={address}
+            onQueryChange={handleAddressChange}
+            selectedLocation={selectedLocation}
+            onSelectLocation={chooseLocation}
+            onClearLocation={() => setSelectedLocation(null)}
+            placeholder="np. Stary Rynek 1, Poznań"
+            required
+          />
 
           <label>
             Krótki opis
