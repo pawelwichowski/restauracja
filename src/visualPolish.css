@@ -1,0 +1,15 @@
+/* Oczyszczenie sekcji startowej: tytuł i znak graficzny wystarczą. */
+.hero .eyebrow,
+.hero > p:last-child {
+  display: none;
+}
+
+.hero {
+  padding-top: 4.35rem;
+  padding-bottom: 3.15rem;
+}
+
+/* Przycisk istnieje w RestaurantDetailsModal, ale musi być nad zdjęciem. */
+.details-modal .modal-close {
+  z-index: 3;
+}
