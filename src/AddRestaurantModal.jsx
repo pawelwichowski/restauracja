@@ -25,6 +25,12 @@ export default function AddRestaurantModal({ cuisines, restaurant = null, onClos
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(restaurant?.photo_url || "");
+  const [restaurantName, setRestaurantName] = useState(restaurant?.name || "");
+  const [nameCheck, setNameCheck] = useState({
+    checking: false,
+    available: null,
+    message: "",
+  });
   const [address, setAddress] = useState(restaurant?.address || "");
   const [selectedLocation, setSelectedLocation] = useState(() => initialLocation(restaurant));
   const [photoRequired, setPhotoRequired] = useState(false);
@@ -40,10 +46,62 @@ export default function AddRestaurantModal({ cuisines, restaurant = null, onClos
       .catch(() => setPhotoRequired(false));
   }, []);
 
+  useEffect(() => {
+    const normalizedName = restaurantName.trim();
+    if (normalizedName.length < 2) {
+      setNameCheck({ checking: false, available: null, message: "" });
+      return undefined;
+    }
+
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(async () => {
+      setNameCheck({ checking: true, available: null, message: "" });
+      try {
+        const url = new URL("/api/restaurants/name-availability", window.location.origin);
+        url.searchParams.set("name", normalizedName);
+        if (restaurant?.id) url.searchParams.set("exclude_id", restaurant.id);
+
+        const response = await fetch(url, {
+          credentials: "same-origin",
+          signal: controller.signal,
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(payload.detail || "Nie udało się sprawdzić nazwy restauracji.");
+        }
+        if (!controller.signal.aborted) {
+          setNameCheck({
+            checking: false,
+            available: payload.available,
+            message: payload.detail || "",
+          });
+        }
+      } catch (requestError) {
+        if (requestError.name !== "AbortError" && !controller.signal.aborted) {
+          setNameCheck({
+            checking: false,
+            available: null,
+            message: "Nie udało się sprawdzić nazwy. Zostanie zweryfikowana przy zapisie.",
+          });
+        }
+      }
+    }, 450);
+
+    return () => {
+      controller.abort();
+      window.clearTimeout(timeoutId);
+    };
+  }, [restaurantName, restaurant?.id]);
+
   const handlePhotoChange = (event) => {
     const file = event.target.files?.[0];
     if (previewUrl.startsWith("blob:")) URL.revokeObjectURL(previewUrl);
     setPreviewUrl(file ? URL.createObjectURL(file) : restaurant?.photo_url || "");
+  };
+
+  const handleNameChange = (event) => {
+    setRestaurantName(event.target.value);
+    setError("");
   };
 
   const handleAddressChange = (value) => {
@@ -61,6 +119,14 @@ export default function AddRestaurantModal({ cuisines, restaurant = null, onClos
     const formData = new FormData(event.currentTarget);
     const selectedCuisines = formData.getAll("cuisine");
 
+    if (nameCheck.checking) {
+      setError("Poczekaj na sprawdzenie nazwy restauracji.");
+      return;
+    }
+    if (nameCheck.available === false) {
+      setError(nameCheck.message || "Restauracja o tej nazwie już istnieje.");
+      return;
+    }
     if (!selectedCuisines.length) {
       setError("Wybierz co najmniej jeden rodzaj kuchni.");
       return;
@@ -71,6 +137,7 @@ export default function AddRestaurantModal({ cuisines, restaurant = null, onClos
     }
 
     formData.delete("cuisine");
+    formData.set("name", restaurantName.trim());
     formData.set("cuisine_names", JSON.stringify(selectedCuisines));
     formData.set("address", address);
     formData.set("latitude", String(selectedLocation.latitude));
@@ -123,10 +190,20 @@ export default function AddRestaurantModal({ cuisines, restaurant = null, onClos
               minLength="2"
               maxLength="150"
               required
-              defaultValue={restaurant?.name || ""}
+              value={restaurantName}
+              onChange={handleNameChange}
               placeholder="np. Bistro Zielony Talerz"
+              aria-describedby="restaurant-name-status"
             />
           </label>
+          <p
+            id="restaurant-name-status"
+            className={`restaurant-name-status ${nameCheck.available === true ? "is-available" : ""} ${nameCheck.available === false ? "is-unavailable" : ""}`.trim()}
+            aria-live="polite"
+          >
+            {nameCheck.checking && "Sprawdzanie nazwy…"}
+            {!nameCheck.checking && nameCheck.message}
+          </p>
 
           <AddressSearch
             label="Adres lokalu"
@@ -135,7 +212,7 @@ export default function AddRestaurantModal({ cuisines, restaurant = null, onClos
             onQueryChange={handleAddressChange}
             selectedLocation={selectedLocation}
             onSelectLocation={chooseLocation}
-            onClearLocation={() => setSelectedLocation(null)}
+            onSelectionCleared={() => setSelectedLocation(null)}
             placeholder="np. Stary Rynek 1, Poznań"
             required
           />
@@ -192,7 +269,11 @@ export default function AddRestaurantModal({ cuisines, restaurant = null, onClos
             <button className="secondary-button" type="button" onClick={onClose} disabled={busy}>
               Anuluj
             </button>
-            <button className="primary-button" type="submit" disabled={busy || cuisines.length === 0}>
+            <button
+              className="primary-button"
+              type="submit"
+              disabled={busy || cuisines.length === 0 || nameCheck.checking || nameCheck.available === false}
+            >
               {busy ? "Zapisywanie…" : isEditing ? "Zapisz zmiany" : "Dodaj restaurację"}
             </button>
           </div>
