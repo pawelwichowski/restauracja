@@ -1,33 +1,29 @@
-# Smacznie — portal z ocenami restauracji
+# Smacznie
 
-Projekt zaliczeniowy z przedmiotu **Aplikacje internetowe**.
+Smacznie to portal do przeglądania i oceniania restauracji. Projekt został wykonany na przedmiot **Aplikacje internetowe**.
 
-## Etap 11 — pełnotekstowe wyszukiwanie komentarzy
+## Technologie
 
-Aplikacja wykorzystuje React, Django i MySQL. Gość może przeglądać restauracje, natomiast zalogowany użytkownik może dodawać restauracje, wystawiać opinie oraz wyszukiwać tekst opublikowanych komentarzy.
+- frontend: React + Vite,
+- backend: Django,
+- baza danych: MySQL,
+- wyszukiwanie lokalizacji: OpenStreetMap / Nominatim.
 
-```text
-React + Vite -> Django API / Django ORM -> MySQL
-                                      |
-                                      +-> FULLTEXT INDEX restaurants_review(comment)
-```
+## Funkcje
 
-### Zaimplementowane funkcje
+- przeglądanie restauracji,
+- filtrowanie po nazwie, kuchni, ocenie i lokalizacji,
+- wyszukiwanie restauracji w pobliżu wybranego adresu,
+- rejestracja, logowanie i reset hasła w środowisku lokalnym,
+- dodawanie, edycja i usuwanie własnych restauracji,
+- dodawanie, edycja i usuwanie własnych opinii,
+- automatyczne liczenie średniej oceny restauracji,
+- wyszukiwanie pełnotekstowe w komentarzach,
+- walidacja unikalnej nazwy restauracji.
 
-- lista restauracji z filtrowaniem po nazwie, kuchni, minimalnej ocenie i odległości,
-- progi minimalnej oceny: od 1,0 do 5,0 co 0,5,
-- rejestracja, logowanie, wylogowanie oraz reset hasła w trybie lokalnym,
-- dodawanie restauracji ze zdjęciem przez zalogowanego użytkownika,
-- jedna opinia użytkownika na restaurację, z oceną 1–5 i opcjonalnym komentarzem,
-- edycja/usuwanie własnej opinii oraz własnej restauracji z potwierdzeniem usuwania,
-- automatyczne przeliczanie średniej oceny i liczby opinii,
-- **pełnotekstowe wyszukiwanie komentarzy** dostępne tylko po zalogowaniu,
-- indeks MySQL `FULLTEXT` na kolumnie `Review.comment`,
-- wyszukiwanie przez `MATCH(comment) AGAINST(... IN NATURAL LANGUAGE MODE)`,
-- wyniki sortowane według trafności i ograniczone do 50,
-- kliknięcie wyniku otwiera szczegóły wskazanej restauracji.
+## Uruchomienie
 
-## Uruchomienie po pobraniu etapu 11
+Przed uruchomieniem skonfiguruj połączenie z MySQL w pliku `backend/.env`.
 
 ### Backend
 
@@ -39,14 +35,7 @@ python manage.py migrate
 python manage.py runserver
 ```
 
-Migracja `0004_review_comment_fulltext` tworzy indeks:
-
-```sql
-CREATE FULLTEXT INDEX review_comment_fulltext
-ON restaurants_review (comment);
-```
-
-Nie uruchamiaj `makemigrations`, ponieważ migracja jest już w repozytorium.
+Backend będzie dostępny pod adresem `http://127.0.0.1:8000`.
 
 ### Frontend
 
@@ -57,18 +46,11 @@ npm install
 npm run dev
 ```
 
-## Testowanie wyszukiwania pełnotekstowego
+Frontend będzie dostępny pod adresem pokazanym przez Vite, zwykle `http://localhost:5173`.
 
-1. Zaloguj się.
-2. W nagłówku kliknij **Szukaj komentarzy**.
-3. Wpisz frazę, np. `ramen`, `pizza`, `obsługa`, `curry` lub `atmosfera`.
-4. Kliknij wynik, aby otworzyć szczegóły restauracji i pełną listę jej opinii.
+## Dane demonstracyjne i zarządzanie danymi
 
-MySQL zwykle nie indeksuje słów krótszych niż 3 znaki, dlatego API i formularz wymagają przynajmniej jednego słowa mającego co najmniej 3 znaki.
-
-### Opcjonalne dane komentarzy do demonstracji
-
-Wcześniejszy seed ocen celowo dodaje opinie bez komentarzy. Aby dodać kilka kontrolowanych komentarzy testowych, wykonaj kolejno:
+Dane przykładowe opinii można dodać poleceniami:
 
 ```bash
 cd backend
@@ -77,46 +59,8 @@ python manage.py seed_demo_reviews
 python manage.py seed_demo_comments
 ```
 
-Druga komenda dodaje lub aktualizuje sześć komentarzy przykładowych. Nie tworzy dodatkowych opinii ani nie zmienia ocen. Obie komendy są bezpieczne do ponownego uruchomienia.
-
-## API
-
-### Restauracje
-
-```text
-GET    /api/restaurants
-GET    /api/restaurants/nearby
-GET    /api/restaurants/<restaurant_id>
-POST   /api/restaurants
-POST   /api/restaurants/<restaurant_id>/edit
-DELETE /api/restaurants/<restaurant_id>/delete
-```
-
-### Opinie
-
-```text
-POST   /api/restaurants/<restaurant_id>/reviews
-PATCH  /api/reviews/<review_id>
-DELETE /api/reviews/<review_id>/delete
-GET    /api/reviews/search?q=<fraza>
-```
-
-Endpoint `GET /api/reviews/search` wymaga zalogowanej sesji. Przykład:
-
-```text
-http://127.0.0.1:8000/api/reviews/search?q=ramen
-```
-
-## Reset hasła w wersji lokalnej
-
-Po opcji **Nie pamiętam hasła** Django nie wysyła prawdziwego e-maila. Pełna wiadomość z jednorazowym linkiem resetu pojawia się w terminalu `python manage.py runserver`.
-
-## Panel administracyjny
+Interaktywny panel do podglądu użytkowników i restauracji, ustawiania haseł testowych oraz usuwania danych uruchomisz poleceniem:
 
 ```bash
-cd backend
-source .venv/bin/activate
-python manage.py createsuperuser
+python manage.py manage_data
 ```
-
-Następnie otwórz `http://127.0.0.1:8000/admin/`.
