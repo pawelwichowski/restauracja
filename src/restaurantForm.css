@@ -75,6 +75,22 @@
   border-color: #277352;
 }
 
+.restaurant-name-status {
+  min-height: 1.1rem;
+  margin: -0.65rem 0 0;
+  color: #718078;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.restaurant-name-status.is-available {
+  color: #1e6a45;
+}
+
+.restaurant-name-status.is-unavailable {
+  color: #b42318;
+}
+
 .address-search {
   display: flex;
   flex-direction: column;
